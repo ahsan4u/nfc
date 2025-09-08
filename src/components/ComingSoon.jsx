@@ -29,7 +29,7 @@ export default function ComingSoon({open, setOpen}) {
 
     return (<>
         <div ref={darkBg_} onClick={()=>removePopup()} className="bg-[rgb(0,0,0,0.8)] fixed w-[100vw] h-[100vh] z-30 opacity-0 pointer-events-none  transition-all duration-500"></div>
-        <div className="absolute z-30 top-0 w-full h-[100vh] pointer-events-none">
+        <div className="fixed z-30 top-0 w-full h-[100vh] pointer-events-none">
             <img ref={comingsoonImg_} src="/commin-soon.png" alt="" className="sm:w-[37%] w-[80%] mx-auto transition-all duration-500 -translate-y-full" />
         </div>
     </>)
