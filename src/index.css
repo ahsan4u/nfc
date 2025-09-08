@@ -5,6 +5,9 @@
   font-style: normal;
 }
 
+::-webkit-scrollbar {
+  width: 0; height: 0;
+}
 
 .permanent-marker-font {
   font-family: "Permanent Marker", cursive;

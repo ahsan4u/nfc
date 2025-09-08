@@ -38,7 +38,7 @@ export default function App() {
     <h2 className="text-center font-bold text-white text-xl mt-4">🔥Pick Your Obsession🔥</h2>
     <ol className="flex text-white gap-x-4 mt-4 mx-2 overflow-x-scroll snap-x snap-mandatory">
       {
-        ['All','Burger', 'Sandwich', 'Roll', 'Pizza', 'Momos', 'Mandi', 'Shakes', 'Mojito'].map(item=><li key={item} ><button onClick={setActiveFn} className={`snap-start px-3 py-0.5 rounded-md bg-[#ffffff0c] border-2 ${active == item? 'border-amber-600 text-amber-500': 'border-[#ffffff19]'}`}>{item}</button></li>)
+        ['All','Roll', 'Burger', 'Sandwich', 'Pizza', 'Momos', 'Mandi', 'Shakes', 'Mojito'].map(item=><li key={item} ><button onClick={setActiveFn} className={`snap-start px-3 py-0.5 rounded-md bg-[#ffffff0c] border-2 ${active == item? 'border-amber-600 text-amber-500': 'border-[#ffffff19]'}`}>{item}</button></li>)
       }
     </ol>
     { items.length < 1 ? <p className="text-center my-[15vh]"><span className="px-4 py-2 bg-red-700 text-white rounded-md">Currently Unavailable</span></p> :
