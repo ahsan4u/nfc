@@ -1,13 +1,14 @@
 @import "tailwindcss";
 
-.lilita-font {
-  font-family: "Lilita One", sans-serif;
+* {
+  font-family: "Convergence", sans-serif;
   font-style: normal;
 }
 
+
 .permanent-marker-font {
   font-family: "Permanent Marker", cursive;
-  font-weight: 600;
+  font-weight: 400;
   font-style: normal;
 }
 
