@@ -14,7 +14,45 @@
   font-weight: 400;
   font-style: normal;
 }
+ 
+@font-face {
+  font-family: 'amertha';
+  src: url('fonts/amertha.ttf') format('truetype');
+}
+.amertha {
+  font-family: 'amertha', sans-serif;
+  font-weight: 100;
+}
+
+
+@font-face {
+  font-family: 'bogart';
+  src: url('fonts/bogart.ttf') format('truetype');
+}
+.bogart {
+  font-family: 'bogart';
+  font-weight: 600;
+}
 
 .flip-x {
   transform: scaleX(-1);
+}
+
+
+.loader-text {
+  width: fit-content;
+  font-family: 'bogart';
+  font-style: italic;
+  font-weight: bold;
+  color: #0000;
+  text-shadow: 0px 0px 0px rgba(242, 255, 0, 0.049);
+  background: 
+    linear-gradient(-40deg,#0000 40%,#ffffff 0 60%,#0000 0) 
+    0/300% 100% no-repeat  text;
+    /* background-position: 20%; */
+  animation: l3 4s linear infinite;
+}
+@keyframes l3 {
+  0%{background-position: 100%}
+  70%{background-position: 0%}
 }
