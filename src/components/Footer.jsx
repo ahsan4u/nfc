@@ -5,7 +5,7 @@ export default function Footer() {
                 <div className="ml-3 pt-3 flex flex-col items-start justify-between h-full">
                     <div className="flex items-end">
                         <img src="/icons/logo.png" alt="Nawab Food Court"  className="h-16"/>
-                        <p className="text-slate-500 loader-text">A Place to Remember</p>
+                        <p className="text-slate-500 loader-text dancing-script-font">A Place to Remember</p>
                     </div>
 
                     <div className="mb-8">

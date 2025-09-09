@@ -14,24 +14,18 @@
   font-weight: 400;
   font-style: normal;
 }
- 
-@font-face {
-  font-family: 'amertha';
-  src: url('fonts/amertha.ttf') format('truetype');
-}
-.amertha {
-  font-family: 'amertha', sans-serif;
-  font-weight: 100;
+
+.dancing-script-font {
+  font-family: "Dancing Script", cursive;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
 }
 
-
-@font-face {
-  font-family: 'bogart';
-  src: url('fonts/bogart.ttf') format('truetype');
-}
-.bogart {
-  font-family: 'bogart';
+.kalam-font {
+  font-family: "Kalam", cursive;
   font-weight: 600;
+  font-style: normal;
 }
 
 .flip-x {
@@ -41,9 +35,7 @@
 
 .loader-text {
   width: fit-content;
-  font-family: 'bogart';
   font-style: italic;
-  font-weight: bold;
   color: #0000;
   text-shadow: 0px 0px 0px rgba(242, 255, 0, 0.049);
   background: 
