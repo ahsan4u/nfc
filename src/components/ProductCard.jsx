@@ -1,4 +1,6 @@
+
 export default function ProductCard({data, setOpen}) {
+    
 
     return (
         <div className="flex justify-between items-center pl-4 bg-[#292929] text-white rounded-2xl h-[88px]">
