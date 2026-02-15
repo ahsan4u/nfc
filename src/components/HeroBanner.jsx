@@ -23,7 +23,7 @@ export default function HeroBanner({ setOpen }) {
                 <div className={`sm:w-[40%] w-[45%] sm:ml-0 ml-4 ${isVisible ? 'translate-x-0' : '-translate-x-[120%]'} transition-all duration-700`}>
                     <p className="permanent-marker-font tracking-widest sm:text-7xl text-lg font-bold sm:leading-20">Enjoy our Delicious Meal</p>
                     <p className="sm:text-lg text-[10px] sm:mt-5 mt-2">Classic recipes with a modern twist, made fresh with care food that delights, comforts, and truly leaves a lasting mark.</p>
-                    <button onClick={() => setOpen(true)} className="sm:px-10 px-5 sm:py-3 py-2 sm:text-xl text-xs tracking-wider font-bold rounded-md bg-amber-600 sm:mt-12 mt-3 cursor-pointer">Book a Table</button>
+                    <button onClick={() => setOpen(true)} className="sm:px-10 px-5 sm:py-3 py-2 sm:text-xl text-xs tracking-wider font-bold rounded-md bg-red-600 sm:mt-12 mt-3 cursor-pointer">Book a Table</button>
                 </div>
 
 

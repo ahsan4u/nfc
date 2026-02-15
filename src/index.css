@@ -89,6 +89,31 @@
   animation: float 6s ease-in-out infinite;
 }
 
+@keyframes card-shine {
+  0% {
+    transform: translateX(-100%) rotate(45deg);
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  40% {
+    transform: translateX(100%) rotate(45deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(100%) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+.animate-card-shine {
+  animation: card-shine 4s ease-in-out infinite;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
