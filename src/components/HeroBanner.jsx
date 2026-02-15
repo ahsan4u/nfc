@@ -8,11 +8,11 @@ export default function HeroBanner({ setOpen }) {
         const observer = new IntersectionObserver((entries) => {
             if (entries[0].isIntersecting) setVisible(true);
             else setVisible(false);
-    }, {});
+        }, {});
 
-    observer.observe(bannerDiv_.current);
+        observer.observe(bannerDiv_.current);
 
-    return ()=> observer.disconnect();
+        return () => observer.disconnect();
     }, []);
 
     return (
@@ -27,7 +27,7 @@ export default function HeroBanner({ setOpen }) {
                 </div>
 
 
-                <img src="/dish.png" alt="" className={`w-[50%] -mb-4 brightness-75 contrast-125 mr-1 ${isVisible ? 'translate-x-0' : 'translate-x-[120%]'} transition-all duration-700`} />
+                <img src="/dish.png" alt="" className={`w-[46%] -mb-4 mr-3 brightness-75 contrast-125 animate-float ${isVisible ? 'translate-x-0' : 'translate-x-[120%]'} transition-all duration-700`} />
             </div>
         </div>
     )
