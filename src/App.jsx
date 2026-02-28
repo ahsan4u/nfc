@@ -3,6 +3,7 @@ import Header from "./components/Header";
 import HeroBanner from "./components/HeroBanner";
 import ProductCard from "./components/ProductCard";
 import Footer from "./components/Footer";
+import FounderSection from "./components/FounderSection";
 const ComingSoon = lazy(() => import('./components/ComingSoon'));
 
 
@@ -102,9 +103,7 @@ export default function App() {
           </div>
         </Fragment>))
     })()}
-    {/* <Suspense fallback={null}>
-        <Images />
-      </Suspense> */}
+    <FounderSection />
     <Footer />
   </>)
 }
