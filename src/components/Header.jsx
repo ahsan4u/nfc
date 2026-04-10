@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 export default function Header() {
-    const phrases = ["NAWAB FUSION CREATIONS", "Taste That Brings You Back"];
+    const phrases = ["NAWAB FOOD CLUB", "Taste That Brings You Back"];
     const [index, setIndex] = useState(0);
     const [subIndex, setSubIndex] = useState(0);
     const [isDeleting, setIsDeleting] = useState(false);
