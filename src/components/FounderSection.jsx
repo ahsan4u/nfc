@@ -15,7 +15,7 @@ const FounderSection = () => {
 
                     {/* Founder Image Container */}
                     <div className="relative flex justify-center mb-6">
-                        <div className="relative animate-float">
+                        <div className="relative">
                             <div className="absolute -inset-0.5 bg-amber-500/20 rounded-2xl blur-3xl scale-105"></div>
                             <img
                                 src="/founder.png"
