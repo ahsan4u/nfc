@@ -5,7 +5,7 @@ export default function Footer() {
             <div className="max-w-[85%] mx-auto flex flex-col sm:flex-row items-center sm:items-start justify-between gap-10">
                 <div className="flex flex-col items-center sm:items-start">
                     <img src="/icons/logo.png" alt="NFC Logo" className="h-32 mb-4" />
-                    <p className="text-amber-500/80 tracking-[0.2em] uppercase text-[10px] font-bold shimmer-text">Taste That Brings You Back</p>
+                    <p className="text-amber-500/80 tracking-[0.2em] uppercase text-[10px] font-bold shimmer-text">ESTD 2026 | LEGACY 1974</p>
                 </div>
 
                 <div className="flex flex-col items-center sm:items-start">
