@@ -39,7 +39,7 @@ export default function Header() {
                 <div className="flex flex-col justify-center gap-1.5 -mb-1">
                     <h1 className="text-white text-base sm:text-xl font-black tracking-[0.25em] leading-tight uppercase bogart">NAWAB SAHAB</h1>
                     <p className="text-amber-500/90 text-[8px] sm:text-[10px] tracking-[0.4em] font-bold uppercase opacity-80 shimmer-text min-h-[1em] flex items-center">
-                        Cafe & Bakehouse
+                        CAFE • BAKERY • SWEETS
                         {/* {phrases[index].substring(0, subIndex)} */}
                         {/* <span className="w-[2px] h-[1em] bg-amber-500 ml-1 animate-cursor inline-block"></span> */}
 
