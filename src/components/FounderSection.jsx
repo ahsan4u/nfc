@@ -40,7 +40,7 @@ const FounderSection = () => {
 
                     {/* Signature style decoration */}
                     <div className="mt-6 flex justify-center opacity-30 grayscale contrast-125">
-                        <span className="permanent-marker-font text-white/50 text-lg select-none">{"Founder & CEO"}</span>
+                        <span className="kalam-font text-white/50 text-lg select-none">Founder & CEO</span>
                     </div>
                 </div>
 
