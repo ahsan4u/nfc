@@ -32,9 +32,9 @@ export default function ProductCard({ data, setOpen }) {
             <div className="relative h-[75px] w-[75px] sm:h-[80px] sm:w-[80px] flex-shrink-0 z-10">
                 <div className="absolute inset-1 bg-white/5 rounded-full blur-xl scale-90 group-hover:scale-110 transition-transform duration-700"></div>
                 <img
-                    src={`/images/dishes/${data.img}.png`}
+                    src={`/images/categories/${data.img}.png`}
                     alt={data.name}
-                    className="relative h-full w-full object-contain drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)] group-hover:rotate-3 group-hover:scale-110 transition-transform duration-500 ease-out"
+                    className="relative h-full w-full object-cover rounded-xl border border-white/10 drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)] group-hover:rotate-3 group-hover:scale-110 transition-transform duration-500 ease-out"
                 />
             </div>
         </div>

@@ -12,10 +12,11 @@ export default function Footer() {
                     <h4 className="text-xl font-bold permanent-marker-font text-white tracking-widest mb-6">Follow our Journey</h4>
                     <div className="flex gap-4">
                         {[
-                            { icon: 'fa-facebook-f', color: 'text-[#1877F2]', link: 'https://www.facebook.com/nfconline' },
-                            { icon: 'fa-instagram', color: 'text-[#E4405F]', link: 'https://www.instagram.com/nawab_food_court/' },
-                            { icon: 'fa-youtube', color: 'text-[#FF0000]', link: '' },
-                            { icon: 'fa-linkedin-in', color: 'text-[#0A66C2]', link: '' }
+                            { icon: 'fa-instagram', color: 'text-[#E4405F]', link: 'https://www.instagram.com/the.nawabsahab?igsh=MWU5aGd0MXE1cXNoZQ==' },
+                            { icon: 'fa-threads', color: 'text-white', link: 'https://www.threads.net/@the.nawabsahab' },
+                            { icon: 'fa-youtube', color: 'text-[#FF0000]', link: 'https://youtube.com/@thenawabsahab?si=d6VzCVFKUKOvQe3i' },
+                            { icon: 'fa-facebook-f', color: 'text-[#1877F2]', link: 'https://www.facebook.com/share/1JBAnSqFok/' },
+                            { icon: 'fa-whatsapp', color: 'text-[#25D366]', link: 'https://wa.me/919838383836' }
                         ].map((social, i) => (
                             <a
                                 key={i}

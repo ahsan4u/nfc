@@ -28,13 +28,13 @@ const FounderSection = () => {
 
                     {/* Content */}
                     <div className="text-center space-y-3">
-                        <h4 className="text-amber-500 font-bold tracking-[0.2em] text-xs uppercase opacity-80 kalam-font">The Visionary</h4>
+                        <h4 className="text-amber-500 font-bold tracking-[0.2em] text-xs uppercase opacity-80 kalam-font">THE VISIONARY</h4>
                         <h2 className="text-3xl font-black text-white italic tracking-tight dancing-script-font">
                             Nawab Sahab
                         </h2>
                         <div className="h-[2px] w-12 bg-amber-500/50 mx-auto rounded-full"></div>
                         <p className="text-gray-400 text-sm leading-relaxed px-2 font-medium">
-                            "Innovation and taste are the soul of our kitchen. We don't just serve food; we serve an experience that lingers."
+                            “We believe great food is more than a meal. It is an experience, a memory, and a reason to come together. At The Nawab Sahab, every detail is created to make every visit feel special.”
                         </p>
                     </div>
 

@@ -9,20 +9,173 @@ const ComingSoon = lazy(() => import('./components/ComingSoon'));
 
 
 const dishes = [
-  { img: 'burger', head: 'Burger', menu: [{ name: 'Chicken Burger', price: 80 }, { name: 'Patty Burger', price: 120 }, { name: 'Zingar Burger', price: 190 }] },
-  { img: 'sandwitch', head: 'Sandwich', menu: [{ name: 'Veg. Sandwich', price: 50 }, { name: 'Paneer Sandwich', price: 60 }, { name: 'Chicken Sandwich', price: 60 }] },
-  { img: 'roll', head: 'Roll', menu: [{ name: 'Egg Roll', price: 50 }, { name: 'Paneer Roll', price: 80 }, { name: 'Chicken Roll', price: 80 }] },
+  {
+    img: 'street_bites_chaat',
+    head: 'Street Bites & Chaat',
+    menu: [
+      { name: 'Special Dahi Puri', price: 60 },
+      { name: 'Sev Puri Premium', price: 50 },
+      { name: 'Crispy Bhel Puri', price: 40 }
+    ]
+  },
+  {
+    img: 'parathas',
+    head: 'Parathas',
+    menu: [
+      { name: 'Aloo Paratha', price: 50 },
+      { name: 'Paneer Paratha', price: 70 },
+      { name: 'Gobi Paratha', price: 60 }
+    ]
+  },
+  {
+    img: 'burgers',
+    head: 'Burgers',
+    menu: [
+      { name: 'Chicken Zinger Burger', price: 120 },
+      { name: 'Cheese Veggie Burger', price: 80 },
+      { name: 'Double Patty Burger', price: 150 }
+    ]
+  },
+  {
+    img: 'sandwiches',
+    head: 'Sandwiches',
+    menu: [
+      { name: 'Grilled Cheese Sandwich', price: 60 },
+      { name: 'Club Chicken Sandwich', price: 110 },
+      { name: 'Paneer Tikka Sandwich', price: 90 }
+    ]
+  },
+  {
+    img: 'pizzas',
+    head: 'Pizzas',
+    menu: [
+      { name: 'Margherita Pizza', price: 160 },
+      { name: 'Chicken Tikka Pizza', price: 220 },
+      { name: 'Farmhouse Pizza', price: 180 }
+    ]
+  },
+  {
+    img: 'rolls_shawarma',
+    head: 'Rolls & Shawarma',
+    menu: [
+      { name: 'Egg Chicken Roll', price: 80 },
+      { name: 'Single Paneer Roll', price: 70 },
+      { name: 'Classic Chicken Shawarma', price: 90 }
+    ]
+  },
+  {
+    img: 'momos',
+    head: 'Momos',
+    menu: [
+      { name: 'Steamed Veg Momos', price: 60 },
+      { name: 'Fried Chicken Momos', price: 90 },
+      { name: 'Kurkure Momos Special', price: 110 }
+    ]
+  },
+  {
+    img: 'chinese_quick_bites',
+    head: 'Chinese & Quick Bites',
+    menu: [
+      { name: 'Veg Hakka Noodles', price: 90 },
+      { name: 'Crispy Spring Rolls', price: 80 },
+      { name: 'Chilli Chicken Dry', price: 140 }
+    ]
+  },
+  {
+    img: 'mojitos_coolers',
+    head: 'Mojitos & Coolers',
+    menu: [
+      { name: 'Mint Lime Mojito', price: 70 },
+      { name: 'Blue Lagoon Cooler', price: 80 },
+      { name: 'Watermelon Slush', price: 80 }
+    ]
+  },
+  {
+    img: 'shakes_special_drinks',
+    head: 'Shakes & Special Drinks',
+    menu: [
+      { name: 'Classic Oreo Shake', price: 90 },
+      { name: 'Cold Coffee with Ice Cream', price: 100 },
+      { name: 'Premium Mango Shake', price: 90 }
+    ]
+  },
+  {
+    img: 'tea_hot_beverages',
+    head: 'Tea & Hot Beverages',
+    menu: [
+      { name: 'Nawab Special Chai', price: 20 },
+      { name: 'Filter Coffee', price: 30 },
+      { name: 'Hot Chocolate', price: 60 }
+    ]
+  },
+  {
+    img: 'ice_gola',
+    head: 'Ice Gola',
+    menu: [
+      { name: 'Kala Khatta Gola', price: 40 },
+      { name: 'Special Rabri Gola', price: 60 }
+    ]
+  },
+  {
+    img: 'bbq_grills',
+    head: 'BBQ & Grills',
+    menu: [
+      { name: 'Chicken Tikka Kebab', price: 180 },
+      { name: 'Paneer Tikka Kebab', price: 150 }
+    ]
+  },
+  {
+    img: 'bakery_delights',
+    head: 'Bakery Delights',
+    menu: [
+      { name: 'Fresh Butter Croissant', price: 50 },
+      { name: 'Chocolate Lava Cake', price: 80 },
+      { name: 'Red Velvet Pastry', price: 70 }
+    ]
+  },
+  {
+    img: 'indian_sweets',
+    head: 'Indian Sweets',
+    menu: [
+      { name: 'Kaju Katli (250g)', price: 250 },
+      { name: 'Special Gulab Jamun (2 Pcs)', price: 40 },
+      { name: 'Motichoor Ladoo (250g)', price: 120 }
+    ]
+  }
 ]
+
+const categoryImages = {
+  'All': 'all.png',
+  'Street Bites & Chaat': 'street_bites_chaat.png',
+  'Parathas': 'parathas.png',
+  'Burgers': 'burgers.png',
+  'Sandwiches': 'sandwiches.png',
+  'Pizzas': 'pizzas.png',
+  'Rolls & Shawarma': 'rolls_shawarma.png',
+  'Momos': 'momos.png',
+  'Chinese & Quick Bites': 'chinese_quick_bites.png',
+  'Mojitos & Coolers': 'mojitos_coolers.png',
+  'Shakes & Special Drinks': 'shakes_special_drinks.png',
+  'Tea & Hot Beverages': 'tea_hot_beverages.png',
+  'Ice Gola': 'ice_gola.png',
+  'BBQ & Grills': 'bbq_grills.png',
+  'Bakery Delights': 'bakery_delights.png',
+  'Indian Sweets': 'indian_sweets.png'
+};
 export default function App() {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState(dishes);
   const [active, setActive] = useState('All');
   const itemDiv_ = useRef([]);
+  const menuRef = useRef(null);
 
-  function setActiveFn(e) {
-    const { textContent } = e.target;
-    textContent !== 'All' ? setItems(dishes.filter(a => a.head == textContent)) : setItems(dishes);
-    setActive(textContent);
+  function scrollToMenu() {
+    menuRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function selectCategory(category) {
+    category !== 'All' ? setItems(dishes.filter(a => a.head == category)) : setItems(dishes);
+    setActive(category);
   }
 
 
@@ -77,23 +230,31 @@ export default function App() {
 
         <Header />
         <div className="absolute top-0 w-full">
-          <HeroBanner setOpen={setOpen} />
+          <HeroBanner setOpen={setOpen} scrollToMenu={scrollToMenu} />
         </div>
 
-        <div className="h-60 sm:h-72" />
-        <h2 className="text-center font-bold text-white sm:text-2xl text-lg mt-6 bogart tracking-wider">🔥Pick Your Obsession🔥</h2>
-        <ol className="flex items-center text-white gap-x-2.5 sm:gap-x-4 mt-5 mx-3 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory scroll-smooth">
+        <div className="sm:aspect-[16/7.6] aspect-[16/12] w-full" />
+        <ol ref={menuRef} className="flex items-center text-white gap-x-3.5 mt-5 mx-3 overflow-x-auto pt-1.5 px-1.5 pb-4 no-scrollbar snap-x snap-mandatory scroll-smooth scroll-mt-24">
           {
-            ['All', 'Roll', 'Burger', 'Sandwich', 'Pizza', 'Momos', 'Mandi', 'Shakes', 'Mojito'].map(item => (
+            ['All', 'Street Bites & Chaat', 'Parathas', 'Burgers', 'Sandwiches', 'Pizzas', 'Rolls & Shawarma', 'Momos', 'Chinese & Quick Bites', 'Mojitos & Coolers', 'Shakes & Special Drinks', 'Tea & Hot Beverages', 'Ice Gola', 'BBQ & Grills', 'Bakery Delights', 'Indian Sweets'].map(item => (
               <li key={item} className="snap-start flex-shrink-0">
                 <button
-                  onClick={setActiveFn}
-                  className={`px-4 sm:px-6 py-1.5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 border backdrop-blur-md ${active === item
-                    ? 'bg-amber-500 border-amber-400 text-black shadow-[0_0_20px_rgba(245,158,11,0.5)] scale-105'
-                    : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:text-white'
+                  onClick={() => selectCategory(item)}
+                  className={`relative overflow-hidden rounded-2xl w-20 h-20 sm:w-24 sm:h-24 border transition-all duration-500 cursor-pointer group flex flex-col justify-end ${active === item
+                    ? 'border-amber-400 scale-[1.03] shadow-[0_0_20px_rgba(245,158,11,0.35)]'
+                    : 'border-white/10 opacity-70 hover:opacity-100 hover:scale-[1.01]'
                     }`}
                 >
-                  {item}
+                  <img
+                    src={`/images/categories/${categoryImages[item]}`}
+                    alt={item}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 h-1/2 flex items-end justify-center pb-2 bg-black/45 backdrop-blur-fade px-1">
+                    <span className="text-[8px] sm:text-[9px] font-black text-white tracking-wider uppercase text-center leading-none">
+                      {item}
+                    </span>
+                  </div>
                 </button>
               </li>
             ))
