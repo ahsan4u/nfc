@@ -242,7 +242,7 @@ export default function App() {
                   onClick={() => selectCategory(item)}
                   className={`relative overflow-hidden rounded-2xl w-20 h-20 sm:w-24 sm:h-24 border transition-all duration-500 cursor-pointer group flex flex-col justify-end ${active === item
                     ? 'border-amber-400 scale-[1.03] shadow-[0_0_20px_rgba(245,158,11,0.35)]'
-                    : 'border-white/10 opacity-70 hover:opacity-100 hover:scale-[1.01]'
+                    : 'border-white/10 hover:scale-[1.01]'
                     }`}
                 >
                   <img
@@ -250,8 +250,8 @@ export default function App() {
                     alt={item}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
-                  <div className="absolute inset-x-0 bottom-0 h-1/2 flex items-end justify-center pb-2 bg-black/45 backdrop-blur-fade px-1">
-                    <span className="text-[8px] sm:text-[9px] font-black text-white tracking-wider uppercase text-center leading-none">
+                  <div className="absolute inset-x-0 -bottom-[1px] h-1/2 group-hover:h-[58%] flex items-end justify-center pb-2 bg-black/45 backdrop-blur-fade px-1 transition-all duration-500">
+                    <span className="text-[8px] sm:text-[9px] font-black text-white tracking-wider uppercase text-center leading-none transition-transform duration-500 group-hover:-translate-y-1">
                       {item}
                     </span>
                   </div>
