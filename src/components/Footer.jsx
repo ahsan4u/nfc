@@ -4,7 +4,7 @@ export default function Footer() {
         <footer className="mt-20 py-12 bg-gradient-to-t from-black to-[#1a1a1a] border-t border-white/5">
             <div className="max-w-[85%] mx-auto flex flex-col sm:flex-row items-center sm:items-start justify-between gap-10">
                 <div className="flex flex-col items-center sm:items-start">
-                    <img src="/icons/logo.png" alt="NFC Logo" className="h-32 mb-4" />
+                    <img src="/icons/new-logo.png" alt="NFC Logo" className="h-32 mb-4" />
                     <p className="text-amber-500/80 tracking-[0.2em] uppercase text-[10px] font-bold shimmer-text">LEGACY 1974 | ESTD 2026</p>
                 </div>
 

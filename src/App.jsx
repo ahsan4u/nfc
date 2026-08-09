@@ -13,133 +13,166 @@ const dishes = [
     img: 'street_bites_chaat',
     head: 'Street Bites & Chaat',
     menu: [
-      { name: 'Special Dahi Puri', price: 60 },
-      { name: 'Sev Puri Premium', price: 50 },
-      { name: 'Crispy Bhel Puri', price: 40 }
+      { name: 'Vada Pav', price: 40 },
+      { name: 'Bread Pakoda', price: 40 },
+      { name: 'Samosa', price: 30 },
+      { name: 'Chicken Samosa', price: 50 },
+      { name: 'Bhajia', price: 40 },
+      { name: 'Pani Puri', price: 40 }
     ]
   },
   {
     img: 'parathas',
     head: 'Parathas',
     menu: [
-      { name: 'Aloo Paratha', price: 50 },
-      { name: 'Paneer Paratha', price: 70 },
-      { name: 'Gobi Paratha', price: 60 }
+      { name: 'Aloo Paratha', price: 50 }
     ]
   },
   {
     img: 'burgers',
     head: 'Burgers',
     menu: [
-      { name: 'Chicken Zinger Burger', price: 120 },
-      { name: 'Cheese Veggie Burger', price: 80 },
-      { name: 'Double Patty Burger', price: 150 }
+      { name: 'Veg Burger', price: 80 },
+      { name: 'Chicken Burger', price: 100 },
+      { name: 'Zinger Burger', price: 120 }
     ]
   },
   {
     img: 'sandwiches',
     head: 'Sandwiches',
     menu: [
-      { name: 'Grilled Cheese Sandwich', price: 60 },
-      { name: 'Club Chicken Sandwich', price: 110 },
-      { name: 'Paneer Tikka Sandwich', price: 90 }
+      { name: 'Veg Sandwich', price: 60 },
+      { name: 'Chicken Sandwich', price: 90 },
+      { name: 'Cheese Sandwich', price: 80 }
     ]
   },
   {
     img: 'pizzas',
     head: 'Pizzas',
     menu: [
-      { name: 'Margherita Pizza', price: 160 },
-      { name: 'Chicken Tikka Pizza', price: 220 },
-      { name: 'Farmhouse Pizza', price: 180 }
+      { name: 'Veg Pizza', price: 150 },
+      { name: 'Chicken Pizza', price: 200 },
+      { name: 'Cheese Corn Pizza', price: 170 }
     ]
   },
   {
     img: 'rolls_shawarma',
     head: 'Rolls & Shawarma',
     menu: [
-      { name: 'Egg Chicken Roll', price: 80 },
-      { name: 'Single Paneer Roll', price: 70 },
-      { name: 'Classic Chicken Shawarma', price: 90 }
+      { name: 'Single Egg Roll', price: 50 },
+      { name: 'Double Egg Roll', price: 70 },
+      { name: 'Chicken Roll', price: 90 },
+      { name: 'Shawarma', price: 100 }
     ]
   },
   {
     img: 'momos',
     head: 'Momos',
     menu: [
-      { name: 'Steamed Veg Momos', price: 60 },
-      { name: 'Fried Chicken Momos', price: 90 },
-      { name: 'Kurkure Momos Special', price: 110 }
+      { name: 'Veg Momos – Steam / Fry / Gravy', price: 80 },
+      { name: 'Chicken Momos – Steam / Fry / Gravy', price: 100 },
+      { name: 'Kurkure Momos', price: 110 }
     ]
   },
   {
     img: 'chinese_quick_bites',
     head: 'Chinese & Quick Bites',
     menu: [
-      { name: 'Veg Hakka Noodles', price: 90 },
-      { name: 'Crispy Spring Rolls', price: 80 },
-      { name: 'Chilli Chicken Dry', price: 140 }
+      { name: 'Chicken Fried Rice', price: 120 },
+      { name: 'Chicken Noodles', price: 120 },
+      { name: 'Chicken Soup', price: 80 },
+      { name: 'Manchurian (Dry/Gravy)', price: 110 },
+      { name: 'French Fries', price: 80 },
+      { name: 'Chilli Potato', price: 90 },
+      { name: 'Crispy Corn', price: 100 },
+      { name: 'Chicken Lollipop', price: 180 }
     ]
   },
   {
     img: 'mojitos_coolers',
     head: 'Mojitos & Coolers',
     menu: [
-      { name: 'Mint Lime Mojito', price: 70 },
-      { name: 'Blue Lagoon Cooler', price: 80 },
-      { name: 'Watermelon Slush', price: 80 }
+      { name: 'Mint Mojito', price: 70 },
+      { name: 'Guava Mojito', price: 80 },
+      { name: 'Blue Mojito', price: 80 }
     ]
   },
   {
     img: 'shakes_special_drinks',
     head: 'Shakes & Special Drinks',
     menu: [
-      { name: 'Classic Oreo Shake', price: 90 },
-      { name: 'Cold Coffee with Ice Cream', price: 100 },
-      { name: 'Premium Mango Shake', price: 90 }
+      { name: 'Falooda', price: 90 },
+      { name: 'Shakes', price: 80 },
+      { name: 'Cold Coffee', price: 90 }
     ]
   },
   {
     img: 'tea_hot_beverages',
     head: 'Tea & Hot Beverages',
     menu: [
-      { name: 'Nawab Special Chai', price: 20 },
-      { name: 'Filter Coffee', price: 30 },
-      { name: 'Hot Chocolate', price: 60 }
+      { name: 'Tea', price: 20 },
+      { name: 'Irani Tea', price: 25 }
     ]
   },
   {
     img: 'ice_gola',
     head: 'Ice Gola',
     menu: [
-      { name: 'Kala Khatta Gola', price: 40 },
-      { name: 'Special Rabri Gola', price: 60 }
+      { name: 'Cola', price: 40 },
+      { name: 'Kala Khatta', price: 40 },
+      { name: 'Rose', price: 40 },
+      { name: 'Mango', price: 40 },
+      { name: 'Orange', price: 40 }
     ]
   },
   {
     img: 'bbq_grills',
     head: 'BBQ & Grills',
     menu: [
-      { name: 'Chicken Tikka Kebab', price: 180 },
-      { name: 'Paneer Tikka Kebab', price: 150 }
+      { name: 'Chicken Fry', price: 150 },
+      { name: 'BBQ Chicken Tikka', price: 180 },
+      { name: 'BBQ Chicken Wings', price: 160 },
+      { name: 'Seekh Kebab', price: 170 },
+      { name: 'Malai Boti', price: 190 }
     ]
   },
   {
     img: 'bakery_delights',
     head: 'Bakery Delights',
     menu: [
-      { name: 'Fresh Butter Croissant', price: 50 },
-      { name: 'Chocolate Lava Cake', price: 80 },
-      { name: 'Red Velvet Pastry', price: 70 }
+      { name: 'Pastries', price: 60 },
+      { name: 'Cakes', price: 350 },
+      { name: 'Cup Cakes', price: 40 },
+      { name: 'Puff', price: 25 },
+      { name: 'Cookies', price: 50 },
+      { name: 'Brownies', price: 80 },
+      { name: 'Donuts', price: 60 },
+      { name: 'Maska Bun', price: 30 }
     ]
   },
   {
     img: 'indian_sweets',
-    head: 'Indian Sweets',
+    head: 'Indian Sweets (Traditional Delights)',
     menu: [
-      { name: 'Kaju Katli (250g)', price: 250 },
-      { name: 'Special Gulab Jamun (2 Pcs)', price: 40 },
-      { name: 'Motichoor Ladoo (250g)', price: 120 }
+      { name: 'Jalebi', price: 50 },
+      { name: 'Gulab Jamun', price: 40 },
+      { name: 'Rasgulla', price: 55 },
+      { name: 'Ras Malai', price: 60 },
+      { name: 'Malai Roll', price: 70 },
+      { name: 'Barfi', price: 80 },
+      { name: 'Milk Cake', price: 90 },
+      { name: 'Peda', price: 80 },
+      { name: 'Motichoor Ladoo', price: 60 },
+      { name: 'Chhena Rasgulla', price: 65 },
+      { name: 'Chhena Ras Malai', price: 70 },
+      { name: 'Sandesh', price: 75 },
+      { name: 'Imarti', price: 60 },
+      { name: 'Boondi', price: 50 },
+      { name: 'Kesar Peda', price: 85 },
+      { name: 'Kalakand', price: 90 },
+      { name: 'Khoya Barfi', price: 85 },
+      { name: 'Balushahi', price: 60 },
+      { name: 'Son Papdi', price: 50 }
     ]
   }
 ]
@@ -160,7 +193,7 @@ const categoryImages = {
   'Ice Gola': 'ice_gola.png',
   'BBQ & Grills': 'bbq_grills.png',
   'Bakery Delights': 'bakery_delights.png',
-  'Indian Sweets': 'indian_sweets.png'
+  'Indian Sweets (Traditional Delights)': 'indian_sweets_traditional_delights.png'
 };
 export default function App() {
   const [open, setOpen] = useState(false);
@@ -236,7 +269,7 @@ export default function App() {
         <div className="sm:aspect-[16/7.6] aspect-[16/12] w-full" />
         <ol ref={menuRef} className="flex items-center text-white gap-x-3.5 mt-5 mx-3 overflow-x-auto pt-1.5 px-1.5 pb-4 no-scrollbar snap-x snap-mandatory scroll-smooth scroll-mt-24">
           {
-            ['All', 'Street Bites & Chaat', 'Parathas', 'Burgers', 'Sandwiches', 'Pizzas', 'Rolls & Shawarma', 'Momos', 'Chinese & Quick Bites', 'Mojitos & Coolers', 'Shakes & Special Drinks', 'Tea & Hot Beverages', 'Ice Gola', 'BBQ & Grills', 'Bakery Delights', 'Indian Sweets'].map(item => (
+            ['All', 'Street Bites & Chaat', 'Parathas', 'Burgers', 'Sandwiches', 'Pizzas', 'Rolls & Shawarma', 'Momos', 'Chinese & Quick Bites', 'Mojitos & Coolers', 'Shakes & Special Drinks', 'Tea & Hot Beverages', 'Ice Gola', 'BBQ & Grills', 'Bakery Delights', 'Indian Sweets (Traditional Delights)'].map(item => (
               <li key={item} className="snap-start flex-shrink-0">
                 <button
                   onClick={() => selectCategory(item)}

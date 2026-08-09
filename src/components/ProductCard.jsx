@@ -1,6 +1,15 @@
+import { useState, useEffect } from "react";
 
 export default function ProductCard({ data, setOpen }) {
+    const dishFileName = data.name.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/(^_+|_+$)/g, "");
+    const dishImgUrl = `/images/dishes/${dishFileName}.png`;
+    const fallbackImgUrl = `/images/categories/${data.img}.png`;
 
+    const [imgSrc, setImgSrc] = useState(dishImgUrl);
+
+    useEffect(() => {
+        setImgSrc(dishImgUrl);
+    }, [dishImgUrl]);
 
     return (
         <div className="group relative flex justify-between items-center pl-4 pr-2 bg-[#1a1a1a] border border-white/5 text-white rounded-2xl sm:h-[94px] h-[95px] w-full shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.6)] hover:scale-[1.01] active:bg-[#252525] transition-all duration-500 cursor-pointer overflow-hidden">
@@ -15,7 +24,7 @@ export default function ProductCard({ data, setOpen }) {
             <div className="flex flex-col justify-center items-start z-10 w-full max-w-[calc(100%-85px)] sm:max-w-[calc(100%-90px)]">
                 <p className="font-bold sm:text-lg text-base leading-tight tracking-wide kalam-font line-clamp-1 text-gray-100 group-hover:text-white transition-colors duration-300">{data.name}</p>
                 <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
-                    <p className="text-[10px] sm:text-xs text-gray-400 font-medium uppercase tracking-tighter">Price</p>
+                    <p className="text-[10px] sm:text-[9px] text-gray-400 font-medium uppercase tracking-tighter">Price</p>
                     <span className="text-green-500 text-sm font-black drop-shadow-[0_0_8px_rgba(34,197,94,0.3)]">{data.price}₹</span>
                 </div>
                 <button
@@ -32,7 +41,12 @@ export default function ProductCard({ data, setOpen }) {
             <div className="relative h-[75px] w-[75px] sm:h-[80px] sm:w-[80px] flex-shrink-0 z-10">
                 <div className="absolute inset-1 bg-white/5 rounded-full blur-xl scale-90 group-hover:scale-110 transition-transform duration-700"></div>
                 <img
-                    src={`/images/categories/${data.img}.png`}
+                    src={imgSrc}
+                    onError={() => {
+                        if (imgSrc !== fallbackImgUrl) {
+                            setImgSrc(fallbackImgUrl);
+                        }
+                    }}
                     alt={data.name}
                     className="relative h-full w-full object-cover rounded-xl border border-white/10 drop-shadow-[0_10px_15px_rgba(0,0,0,0.5)] group-hover:rotate-3 group-hover:scale-110 transition-transform duration-500 ease-out"
                 />
