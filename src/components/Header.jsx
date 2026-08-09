@@ -37,7 +37,7 @@ export default function Header() {
             <div className="flex items-center gap-2 h-[80%]">
                 <img src="/icons/new-logo.png" alt="NFC Logo" className="h-full -mt-0.5 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.05)]" />
                 <div className="flex flex-col justify-center gap-1.5 -mb-1">
-                    <h1 className="text-white text-base sm:text-xl font-black tracking-[0.25em] leading-tight uppercase bogart">NAWAB SAHAB</h1>
+                    <h1 className="text-white text-base sm:text-xl font-black tracking-[0.25em] leading-tight uppercase bogart">THE NAWAB SAHAB</h1>
                     <p className="text-amber-500/90 text-[8px] sm:text-[10px] tracking-[0.4em] font-bold uppercase opacity-80 shimmer-text min-h-[1em] flex items-center">
                         CAFE • BAKERY • SWEETS
                         {/* {phrases[index].substring(0, subIndex)} */}
