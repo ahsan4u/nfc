@@ -15,11 +15,68 @@ import {
   FiKey,
   FiMail,
   FiLock,
-  FiServer
+  FiServer,
+  FiMapPin
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { getBlobUrl } from "@/lib/functions";
 import AssetPickerModal from "./AssetPickerModal";
+import StoreRadiusMap from "./StoreRadiusMap";
+
+const TAB_FIELDS = {
+  branding: ["site_title", "tagline", "logo_image"],
+  hero: [
+    "hero_banner_image",
+    "hero_dish_image",
+    "hero_title",
+    "hero_desc",
+    "hero_button_text",
+    "coming_soon_image",
+  ],
+  founder: [
+    "founder_image",
+    "founder_badge",
+    "founder_name",
+    "founder_quote",
+    "founder_role",
+  ],
+  footer: [
+    "footer_logo_image",
+    "legacy_year",
+    "footer_follow_title",
+    "footer_copyright",
+    "whatsapp_number",
+    "instagram_url",
+    "threads_url",
+    "youtube_url",
+    "facebook_url",
+  ],
+  seo: [
+    "meta_title",
+    "meta_description",
+    "meta_keywords",
+    "favicon_image",
+    "og_image",
+    "google_site_verification",
+    "canonical_url",
+  ],
+  email: [
+    "smtp_host",
+    "smtp_port",
+    "smtp_user",
+    "smtp_pass",
+    "smtp_from_email",
+    "admin_notification_email",
+  ],
+  radius: [
+    "store_lat",
+    "store_lng",
+    "delivery_radius_km",
+    "store_address",
+    "serviceability_check_enabled",
+  ],
+  general: ["unavailable_text", "delivery_time"],
+};
 
 export default function AdminConfig() {
   const [config, setConfig] = useState({
@@ -64,7 +121,15 @@ export default function AdminConfig() {
     smtp_user: "",
     smtp_pass: "",
     smtp_from_email: "",
-    admin_notification_email: ""
+    admin_notification_email: "",
+
+    // Delivery Location & Radius Setup
+    store_lat: "26.8467",
+    store_lng: "80.9462",
+    delivery_radius_km: "5",
+    store_address: "The Nawab Sahab, Hazratganj, Lucknow, Uttar Pradesh",
+    serviceable_areas_list: "Anwak, Sirsa, Khalispur, Nizamabad",
+    serviceability_check_enabled: "true"
   });
 
   const [loading, setLoading] = useState(true);
@@ -106,20 +171,43 @@ export default function AdminConfig() {
     }
   };
 
+  const tabs = [
+    { id: "branding", label: "Branding & Header", icon: FiGlobe },
+    { id: "hero", label: "Hero & Banner", icon: FiLayout },
+    { id: "founder", label: "Founder Section", icon: FiUser },
+    { id: "footer", label: "Footer & Social", icon: FiPhone },
+    { id: "seo", label: "Google Console & SEO", icon: FiSearch },
+    { id: "email", label: "Email Setup", icon: FiMail },
+    { id: "radius", label: "Delivery Radius & Map", icon: FiMapPin },
+    { id: "general", label: "Store Messages", icon: FiLayers },
+  ];
+
   const handleSave = async (e) => {
     if (e) e.preventDefault();
     setSaving(true);
+
+    const relevantKeys = TAB_FIELDS[activeTab] || Object.keys(config);
+    const tabPayload = {};
+    relevantKeys.forEach((k) => {
+      if (config[k] !== undefined) {
+        tabPayload[k] = config[k];
+      }
+    });
+
+    const activeTabObj = tabs.find((t) => t.id === activeTab);
+    const tabLabel = activeTabObj ? activeTabObj.label : "Settings";
+
     try {
       const res = await fetch("/api/admin/config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(config),
+        body: JSON.stringify(tabPayload),
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "Save failed");
 
-      toast.success("All page configurations saved successfully!");
+      toast.success(`${tabLabel} saved successfully!`);
     } catch (err) {
       toast.error(err.message || "Failed to save configuration");
     } finally {
@@ -127,48 +215,8 @@ export default function AdminConfig() {
     }
   };
 
-  const tabs = [
-    { id: "branding", label: "Branding & Header", icon: FiGlobe },
-    { id: "hero", label: "Hero & Banner", icon: FiLayout },
-    { id: "founder", label: "Founder Section", icon: FiUser },
-    { id: "footer", label: "Footer & Social", icon: FiPhone },
-    { id: "seo", label: "Google Console & SEO", icon: FiSearch },
-    { id: "email", label: "Email & SMTP", icon: FiMail },
-    { id: "general", label: "Store Messages", icon: FiLayers },
-  ];
-
   return (
     <div className="space-y-4 pb-12">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#111116] border border-white/10 rounded-2xl p-3 sm:p-4">
-        <div>
-          <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-            <span>Website Configuration</span>
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
-              Live Control
-            </span>
-          </h2>
-          <p className="text-[11px] text-gray-400">
-            Control all texts, section images, SEO metadata, and automated order emails
-          </p>
-        </div>
-
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-extrabold text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
-        >
-          {saving ? (
-            <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <>
-              <FiSave size={15} />
-              <span>Save Configuration</span>
-            </>
-          )}
-        </button>
-      </div>
-
       {/* Tabs */}
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar pt-0.5">
         {tabs.map((tab) => {
@@ -752,27 +800,13 @@ export default function AdminConfig() {
           </div>
         )}
 
-        {/* 6. EMAIL & SMTP SETUP */}
+        {/* 6. EMAIL SETUP */}
         {activeTab === "email" && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-2">
-              <h3 className="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-2">
-                <FiMail size={14} />
-                <span>Email & Automated Order Notifications (SMTP)</span>
-              </h3>
-              <span className="text-[10px] text-green-400 bg-green-500/10 px-2.5 py-0.5 rounded-full border border-green-500/20 whitespace-nowrap">
-                Customer & Admin Alerts
-              </span>
-            </div>
-
-            {/* Info Banner */}
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-gray-300 leading-relaxed">
-              <p className="font-bold text-amber-400 mb-1 flex items-center gap-1.5">
-                <FiServer size={13} />
-                <span>Automated Order Confirmation Service</span>
-              </p>
-              When an order is placed (via COD or Online Razorpay), an instant receipt is dispatched to the customer&apos;s email address, and a new order alert is sent to the admin email.
-            </div>
+            <h3 className="text-xs font-bold text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2 flex items-center gap-2">
+              <FiMail size={14} />
+              <span>Email Setup</span>
+            </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
               <div className="sm:col-span-2">
@@ -867,7 +901,63 @@ export default function AdminConfig() {
           </div>
         )}
 
-        {/* 7. GENERAL STORE MESSAGES */}
+        {/* 7. DELIVERY RADIUS & MAP */}
+        {activeTab === "radius" && (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-2">
+              <h3 className="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-2">
+                <FiMapPin size={14} />
+                <span>Store Location & Serviceable Radius</span>
+              </h3>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={config.serviceability_check_enabled === "true" || config.serviceability_check_enabled === true}
+                  onChange={(e) => handleChange("serviceability_check_enabled", e.target.checked ? "true" : "false")}
+                  className="w-3.5 h-3.5 rounded bg-[#1b1b22] border-white/20 text-amber-500 accent-amber-500 cursor-pointer"
+                />
+                <span className="text-[11px] font-bold text-gray-300">
+                  Enable GPS Check at Checkout
+                </span>
+              </label>
+            </div>
+
+            <div>
+              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                Store Physical Address / Landmark
+              </label>
+              <input
+                type="text"
+                value={config.store_address || ""}
+                onChange={(e) => handleChange("store_address", e.target.value)}
+                placeholder="e.g. The Nawab Sahab, Anwak, Nizamabad, Azamgarh"
+                className="w-full mt-1 bg-[#101014] border border-white/10 focus:border-amber-500/50 rounded-xl px-3 py-2 text-xs text-white outline-none"
+              />
+            </div>
+
+            {/* Interactive Radius Map */}
+            <StoreRadiusMap
+              lat={parseFloat(config.store_lat) || 26.8467}
+              lng={parseFloat(config.store_lng) || 80.9462}
+              radiusKm={parseFloat(config.delivery_radius_km) || 5}
+              onChangeCoordinates={(newLat, newLng) => {
+                setConfig((prev) => ({
+                  ...prev,
+                  store_lat: String(newLat),
+                  store_lng: String(newLng),
+                }));
+              }}
+              onChangeRadius={(newRadius) => {
+                setConfig((prev) => ({
+                  ...prev,
+                  delivery_radius_km: String(newRadius),
+                }));
+              }}
+            />
+          </div>
+        )}
+
+        {/* 8. GENERAL STORE MESSAGES */}
         {activeTab === "general" && (
           <div className="space-y-4">
             <h3 className="text-xs font-bold text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2">
@@ -907,14 +997,14 @@ export default function AdminConfig() {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-extrabold shadow-lg shadow-amber-500/20 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-extrabold shadow-lg shadow-amber-500/20 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
           >
             {saving ? (
               <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <FiCheck size={14} />
-                <span>Save All Changes</span>
+                <FiCheck size={15} className="stroke-[3]" />
+                <span>Save</span>
               </>
             )}
           </button>

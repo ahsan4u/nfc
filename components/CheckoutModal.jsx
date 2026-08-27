@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { 
   FiX, 
@@ -14,10 +14,13 @@ import {
   FiMail,
   FiShoppingBag,
   FiArrowRight,
-  FiCheck
+  FiCheck,
+  FiCrosshair,
+  FiAlertTriangle,
+  FiNavigation
 } from "react-icons/fi";
 import toast from "react-hot-toast";
-import { formatPrice, getDishImageUrl } from "@/lib/functions";
+import { formatPrice, getDishImageUrl, calculateDistanceKm, formatWeightDisplay } from "@/lib/functions";
 
 export default function CheckoutModal({
   open,
@@ -29,6 +32,8 @@ export default function CheckoutModal({
   onRemove,
   onClearCart,
   config,
+  locationState: externalLocState,
+  setLocationState: externalSetLocState,
 }) {
   const [customer, setCustomer] = useState({
     name: "",
@@ -40,9 +45,114 @@ export default function CheckoutModal({
   const [processing, setProcessing] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(null);
 
+  // Local fallback GPS Serviceability State if not passed from parent
+  const [localLocState, setLocalLocState] = useState({
+    checking: false,
+    checked: false,
+    isServiceable: null,
+    distanceKm: null,
+    userLat: null,
+    userLng: null,
+    detectedAddress: "",
+    error: "",
+  });
+
+  const locState = externalLocState || localLocState;
+  const setLocState = externalSetLocState || setLocalLocState;
+
+  // Sync detected address to customer address input if empty
+  useEffect(() => {
+    if (locState?.detectedAddress && !customer.address.trim()) {
+      setCustomer((c) => ({ ...c, address: locState.detectedAddress }));
+    }
+  }, [locState?.detectedAddress, open]);
+
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    if (open) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [open]);
+
   if (!open) return null;
 
   const deliveryTime = config?.delivery_time || "25-35 mins";
+  const storeLat = parseFloat(config?.store_lat) || 26.8467;
+  const storeLng = parseFloat(config?.store_lng) || 80.9462;
+  const maxRadiusKm = parseFloat(config?.delivery_radius_km) || 5;
+  const isServiceCheckEnabled = config?.serviceability_check_enabled !== "false";
+
+  // GPS Location Checker Handler
+  const verifyServiceability = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported on this device/browser");
+      return;
+    }
+
+    setLocState((prev) => ({ ...prev, checking: true, error: "" }));
+    const toastId = toast.loading("Detecting your current location...");
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const uLat = pos.coords.latitude;
+        const uLng = pos.coords.longitude;
+        const dist = calculateDistanceKm(storeLat, storeLng, uLat, uLng);
+        const serviceable = dist !== null ? dist <= maxRadiusKm : true;
+
+        let addressText = "";
+        try {
+          const geoRes = await fetch(
+            `/api/admin/geocode?lat=${encodeURIComponent(uLat)}&lng=${encodeURIComponent(uLng)}`
+          );
+          const geoResult = await geoRes.json();
+          if (geoResult?.data?.display_name) {
+            addressText = geoResult.data.display_name;
+            if (!customer.address.trim()) {
+              setCustomer((c) => ({ ...c, address: addressText }));
+            }
+          }
+        } catch {
+          // Geocode failed gracefully
+        }
+
+        setLocState({
+          checking: false,
+          checked: true,
+          isServiceable: serviceable,
+          distanceKm: dist,
+          userLat: uLat,
+          userLng: uLng,
+          detectedAddress: addressText,
+          error: "",
+        });
+
+        if (serviceable) {
+          toast.success(`Delivery available! ~${dist} km from store`, { id: toastId });
+        } else {
+          toast.error(`Out of delivery area (${dist} km away, max is ${maxRadiusKm} km)`, {
+            id: toastId,
+            duration: 5000,
+          });
+        }
+      },
+      (err) => {
+        setLocState((prev) => ({
+          ...prev,
+          checking: false,
+          checked: true,
+          error: "Permission denied or location unavailable",
+        }));
+        toast.error("Location access denied. Please type your delivery address manually.", {
+          id: toastId,
+        });
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const handleCheckout = async (e) => {
     e.preventDefault();
@@ -64,6 +174,12 @@ export default function CheckoutModal({
       return;
     }
 
+    // Check if location is confirmed out of radius
+    if (isServiceCheckEnabled && locState.checked && locState.isServiceable === false) {
+      toast.error(`Sorry, your location is ${locState.distanceKm} km away. We only deliver within ${maxRadiusKm} km.`);
+      return;
+    }
+
     setProcessing(true);
 
     try {
@@ -73,7 +189,12 @@ export default function CheckoutModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: cartItems,
-          customer,
+          customer: {
+            ...customer,
+            user_lat: locState.userLat,
+            user_lng: locState.userLng,
+            distance_km: locState.distanceKm,
+          },
           payment_method: paymentMethod,
         }),
       });
@@ -89,7 +210,10 @@ export default function CheckoutModal({
           order_id: orderData.order_id,
           payment_method: "cod",
           amount: totalPrice,
-          customer,
+          customer: {
+            ...customer,
+            distance_km: locState.distanceKm,
+          },
           items: cartItems,
         });
         onClearCart();
@@ -278,13 +402,14 @@ export default function CheckoutModal({
                   {cartItems.map((item) => {
                     const { dishImgUrl, fallbackImgUrl } = getDishImageUrl(item.name, item.img || "all");
                     const img = item.image_url || dishImgUrl;
+                    const itemKey = item.key || item.id || item.name;
 
                     return (
                       <div
-                        key={item.id || item.name}
+                        key={itemKey}
                         className="flex items-center justify-between p-2 rounded-xl bg-[#181820] border border-white/5"
                       >
-                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                        <div className="flex items-center gap-2.5 min-w-0 pr-2 flex-1">
                           <div className="w-9 h-9 rounded-lg bg-black/60 border border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center">
                             <img
                               src={img}
@@ -293,10 +418,19 @@ export default function CheckoutModal({
                               className="w-full h-full object-cover"
                             />
                           </div>
-                          <div className="truncate">
+                          <div className="min-w-0 flex-1">
                             <h5 className="text-xs font-bold text-white truncate">{item.name}</h5>
+                            {item.pricing_type === "weight" ? (
+                              <p className="text-[10px] text-amber-400 font-bold truncate">
+                                {item.is_tier_pricing ? item.variant_name : formatWeightDisplay(item.quantity, item.step_grams, item.unit_label)} {item.variant_note ? `(${item.variant_note})` : ""}
+                              </p>
+                            ) : item.variant_name ? (
+                              <p className="text-[10px] text-amber-400 font-bold truncate">
+                                {item.variant_name} {item.variant_note ? `(${item.variant_note})` : ""}
+                              </p>
+                            ) : null}
                             <p className="text-[10px] text-green-400 font-extrabold">
-                              {formatPrice(item.price * item.quantity)}
+                              {formatPrice(item.is_tier_pricing ? item.price : (item.price * item.quantity))}
                             </p>
                           </div>
                         </div>
@@ -310,8 +444,12 @@ export default function CheckoutModal({
                           >
                             -
                           </button>
-                          <span className="w-5 text-center text-[11px] font-black text-white">
-                            {item.quantity}
+                          <span className={`text-center text-[11px] font-black text-white font-mono ${
+                            item.pricing_type === "weight" ? "px-1.5 text-amber-300 min-w-[36px]" : "w-5"
+                          }`}>
+                            {item.pricing_type === "weight"
+                              ? (item.is_tier_pricing ? item.variant_name : formatWeightDisplay(item.quantity, item.step_grams, item.unit_label))
+                              : item.quantity}
                           </span>
                           <button
                             type="button"
@@ -372,6 +510,56 @@ export default function CheckoutModal({
                     />
                   </div>
                 </div>
+
+                {/* GPS Location & Serviceability Verification */}
+                {isServiceCheckEnabled && (
+                  <div className="p-2.5 rounded-xl bg-[#141419] border border-white/10 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-gray-300">
+                        <FiNavigation size={12} className="text-amber-400" />
+                        <span>Delivery Area Check</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={verifyServiceability}
+                        disabled={locState.checking}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 text-[10px] font-bold border border-amber-500/30 transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        <FiCrosshair size={11} />
+                        <span>{locState.checking ? "Checking..." : locState.checked ? "Re-check GPS" : "Use Current GPS"}</span>
+                      </button>
+                    </div>
+
+                    {/* Result Badge */}
+                    {locState.checked && locState.isServiceable !== null && (
+                      <div
+                        className={`p-2 rounded-lg flex items-start gap-2 text-[11px] ${
+                          locState.isServiceable
+                            ? "bg-green-500/10 border border-green-500/30 text-green-300"
+                            : "bg-red-500/10 border border-red-500/30 text-red-300"
+                        }`}
+                      >
+                        {locState.isServiceable ? (
+                          <FiCheckCircle className="text-green-400 mt-0.5 flex-shrink-0" size={14} />
+                        ) : (
+                          <FiAlertTriangle className="text-red-400 mt-0.5 flex-shrink-0" size={14} />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold">
+                            {locState.isServiceable
+                              ? `Delivery Available! (~${locState.distanceKm} km away)`
+                              : `Out of Delivery Area (${locState.distanceKm} km away)`}
+                          </p>
+                          <p className="text-[10px] opacity-80 mt-0.5">
+                            {locState.isServiceable
+                              ? `Your location is within our ${maxRadiusKm} km kitchen delivery zone.`
+                              : `We currently deliver within ${maxRadiusKm} km of our kitchen.`}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div>
                   <div className="relative flex items-start">

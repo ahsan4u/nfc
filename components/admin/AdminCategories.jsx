@@ -15,26 +15,6 @@ import toast from "react-hot-toast";
 import { getBlobUrl } from "@/lib/functions";
 import AssetPickerModal from "./AssetPickerModal";
 
-const PRESET_IMAGE_KEYS = [
-  "street_bites_chaat",
-  "parathas",
-  "burgers",
-  "sandwiches",
-  "pizzas",
-  "rolls_shawarma",
-  "momos",
-  "chinese_quick_bites",
-  "mojitos_coolers",
-  "shakes_special_drinks",
-  "tea_hot_beverages",
-  "ice_gola",
-  "bbq_grills",
-  "bakery_delights",
-  "indian_sweets",
-  "mandi",
-  "all"
-];
-
 export default function AdminCategories() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +24,7 @@ export default function AdminCategories() {
   const [modalOpen, setModalOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
-  const [formData, setFormData] = useState({ name: "", img: "street_bites_chaat", display_order: 1 });
+  const [formData, setFormData] = useState({ name: "", img: "", display_order: 1 });
   const [saving, setSaving] = useState(false);
 
   const fetchCategories = async () => {
@@ -65,11 +45,22 @@ export default function AdminCategories() {
     fetchCategories();
   }, []);
 
+  // Lock body scroll while modal is open
+  useEffect(() => {
+    if (modalOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [modalOpen]);
+
   const openAddModal = () => {
     setEditingCategory(null);
     setFormData({
       name: "",
-      img: "street_bites_chaat",
+      img: "",
       display_order: categories.length + 1,
     });
     setModalOpen(true);
@@ -79,7 +70,7 @@ export default function AdminCategories() {
     setEditingCategory(cat);
     setFormData({
       name: cat.name,
-      img: cat.img,
+      img: cat.img || "",
       display_order: cat.display_order,
     });
     setModalOpen(true);
@@ -87,18 +78,24 @@ export default function AdminCategories() {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.img.trim()) {
-      toast.error("Please provide both name and image identifier");
+    if (!formData.name.trim()) {
+      toast.error("Please provide a category name");
       return;
     }
+
+    const cleanImg = formData.img.trim() || formData.name.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_');
 
     setSaving(true);
     try {
       const url = "/api/admin/categories";
       const method = editingCategory ? "PUT" : "POST";
+      const payload = {
+        ...formData,
+        img: cleanImg,
+      };
       const body = editingCategory 
-        ? { id: editingCategory.id, ...formData }
-        : formData;
+        ? { id: editingCategory.id, ...payload }
+        : payload;
 
       const res = await fetch(url, {
         method,
@@ -144,8 +141,14 @@ export default function AdminCategories() {
 
   const filtered = categories.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) || 
-    c.img.toLowerCase().includes(search.toLowerCase())
+    (c.img && c.img.toLowerCase().includes(search.toLowerCase()))
   );
+
+  const resolveImgUrl = (imgKey) => {
+    if (!imgKey) return getBlobUrl('/images/categories/all.png');
+    if (imgKey.startsWith('http://') || imgKey.startsWith('https://')) return imgKey;
+    return getBlobUrl(`/images/categories/${imgKey}.png`);
+  };
 
   return (
     <div className="space-y-4 pb-12">
@@ -205,7 +208,7 @@ export default function AdminCategories() {
       ) : (
         <div className="space-y-2">
           {filtered.map((cat) => {
-            const imgUrl = getBlobUrl(`/images/categories/${cat.img}.png`);
+            const imgUrl = resolveImgUrl(cat.img);
             return (
               <div
                 key={cat.id}
@@ -233,7 +236,7 @@ export default function AdminCategories() {
                       </h4>
                     </div>
                     <div className="flex items-center gap-2 text-[10px] text-gray-400 mt-0.5">
-                      <span className="text-gray-500">Key: {cat.img}</span>
+                      <span className="text-gray-500">Key: {cat.img || "none"}</span>
                       <span>•</span>
                       <span className="text-green-400 font-semibold">{cat.product_count || 0} dishes</span>
                     </div>
@@ -244,14 +247,14 @@ export default function AdminCategories() {
                 <div className="flex items-center gap-1 flex-shrink-0">
                   <button
                     onClick={() => openEditModal(cat)}
-                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors"
+                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
                     title="Edit"
                   >
                     <FiEdit2 size={13} />
                   </button>
                   <button
                     onClick={() => handleDelete(cat.id, cat.name)}
-                    className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors"
+                    className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors cursor-pointer"
                     title="Delete"
                   >
                     <FiTrash2 size={13} />
@@ -298,46 +301,32 @@ export default function AdminCategories() {
                   Category Image
                 </label>
                 
-                <div className="mt-1.5 flex items-center gap-3 p-2 rounded-xl bg-[#101014] border border-white/10">
+                <div className="mt-1.5 flex items-center gap-3 p-2.5 rounded-xl bg-[#101014] border border-white/10">
                   <div className="w-12 h-12 rounded-lg bg-black/60 border border-white/10 overflow-hidden flex items-center justify-center flex-shrink-0">
-                    <img
-                      src={getBlobUrl(`/images/categories/${formData.img}.png`)}
-                      alt="Preview"
-                      onError={(e) => { e.currentTarget.src = getBlobUrl('/images/categories/all.png'); }}
-                      className="w-full h-full object-cover"
-                    />
+                    {formData.img ? (
+                      <img
+                        src={resolveImgUrl(formData.img)}
+                        alt="Preview"
+                        onError={(e) => { e.currentTarget.src = getBlobUrl('/images/categories/all.png'); }}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <FiImage size={20} className="text-gray-500" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold text-gray-300 truncate">
-                      {formData.img || "none"}
+                    <p className="text-[11px] font-bold text-gray-300 truncate">
+                      {formData.img || "No image selected"}
                     </p>
                     <button
                       type="button"
                       onClick={() => setPickerOpen(true)}
-                      className="mt-1 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 text-[10px] font-bold border border-amber-500/30 transition-colors"
+                      className="mt-1 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 text-[10px] font-bold border border-amber-500/30 transition-colors cursor-pointer"
                     >
                       <FiImage size={12} />
-                      <span>Choose from Assets</span>
+                      <span>{formData.img ? "Change Image" : "Choose from Assets"}</span>
                     </button>
                   </div>
-                </div>
-
-                {/* Quick Presets Pills */}
-                <div className="flex items-center gap-1 overflow-x-auto mt-2 pb-1 no-scrollbar">
-                  {PRESET_IMAGE_KEYS.slice(0, 8).map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, img: key })}
-                      className={`text-[9px] px-2 py-0.5 rounded-md whitespace-nowrap transition-colors ${
-                        formData.img === key 
-                          ? "bg-amber-500 text-black font-bold" 
-                          : "bg-white/5 text-gray-400 hover:text-white"
-                      }`}
-                    >
-                      {key}
-                    </button>
-                  ))}
                 </div>
               </div>
 

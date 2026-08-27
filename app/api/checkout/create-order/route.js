@@ -79,6 +79,8 @@ export async function POST(request) {
           customer_phone: customer.phone,
           customer_email: customer.email,
           customer_address: customer.address,
+          customer_distance_km: customer.distance_km ? `${customer.distance_km} km` : 'N/A',
+          customer_gps: customer.user_lat && customer.user_lng ? `${customer.user_lat},${customer.user_lng}` : 'N/A',
         },
       }),
     });

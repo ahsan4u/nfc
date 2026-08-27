@@ -2,6 +2,18 @@ import { NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 
+function formatFolderName(str) {
+  if (!str) return 'General';
+  const s = str.trim();
+  const lower = s.toLowerCase();
+  if (lower === 'categories') return 'Categories';
+  if (lower === 'dishes') return 'Dishes';
+  if (lower === 'icons') return 'Icons';
+  if (lower === 'banners') return 'Banners';
+  if (lower === 'general') return 'General';
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 export async function POST(request) {
   try {
     const isAuth = await isAdminAuthenticated();
@@ -15,7 +27,7 @@ export async function POST(request) {
     }
 
     const formData = await request.formData();
-    const folder = (formData.get('folder') || 'General').trim();
+    const folder = formatFolderName((formData.get('folder') || 'General').trim());
     const files = formData.getAll('file');
 
     if (!files || files.length === 0) {

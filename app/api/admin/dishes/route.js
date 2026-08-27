@@ -56,7 +56,9 @@ export async function POST(request) {
       price, 
       compare_price = null, 
       image_url = null, 
-      available = true 
+      available = true,
+      pricing_type = 'count',
+      variants_json = '[]'
     } = body;
 
     if (!category_id || !name || price === undefined) {
@@ -65,16 +67,19 @@ export async function POST(request) {
 
     const compPriceVal = compare_price ? parseFloat(compare_price) : null;
     const imgUrlVal = image_url ? String(image_url).trim() : null;
+    const variantsStr = typeof variants_json === 'object' ? JSON.stringify(variants_json) : String(variants_json || '[]');
 
     const [newDish] = await sql`
-      INSERT INTO products (category_id, name, price, compare_price, image_url, available)
+      INSERT INTO products (category_id, name, price, compare_price, image_url, available, pricing_type, variants_json)
       VALUES (
         ${parseInt(category_id)}, 
         ${name.trim()}, 
         ${parseFloat(price)}, 
         ${compPriceVal}, 
         ${imgUrlVal}, 
-        ${Boolean(available)}
+        ${Boolean(available)},
+        ${String(pricing_type || 'count')},
+        ${variantsStr}
       )
       RETURNING *;
     `;
@@ -100,7 +105,9 @@ export async function PUT(request) {
       price, 
       compare_price = null, 
       image_url = null, 
-      available 
+      available,
+      pricing_type = 'count',
+      variants_json = '[]'
     } = body;
 
     if (!id) {
@@ -111,6 +118,7 @@ export async function PUT(request) {
     if (name !== undefined && price !== undefined && category_id !== undefined) {
       const compPriceVal = compare_price ? parseFloat(compare_price) : null;
       const imgUrlVal = image_url ? String(image_url).trim() : null;
+      const variantsStr = typeof variants_json === 'object' ? JSON.stringify(variants_json) : String(variants_json || '[]');
 
       [updated] = await sql`
         UPDATE products
@@ -120,7 +128,9 @@ export async function PUT(request) {
           price = ${parseFloat(price)}, 
           compare_price = ${compPriceVal}, 
           image_url = ${imgUrlVal}, 
-          available = ${Boolean(available)}
+          available = ${Boolean(available)},
+          pricing_type = ${String(pricing_type || 'count')},
+          variants_json = ${variantsStr}
         WHERE id = ${parseInt(id)}
         RETURNING *;
       `;

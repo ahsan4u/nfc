@@ -62,7 +62,7 @@ export default function AdminLogin({ onLoginSuccess }) {
               <FiLock className="text-amber-400 text-2xl" />
             </div>
             <h1 className="text-xl sm:text-2xl font-black tracking-wider text-white uppercase bogart">
-              NFC Console
+              The Nawab Sahab
             </h1>
             <p className="text-xs text-amber-500/80 font-medium tracking-widest uppercase">
               Admin Authentication

@@ -10,6 +10,8 @@ import BackgroundAnimation from "@/components/BackgroundAnimation";
 import ComingSoon from "@/components/ComingSoon";
 import CartFloatingBar from "@/components/CartFloatingBar";
 import CheckoutModal from "@/components/CheckoutModal";
+import LocationPromptModal from "@/components/LocationPromptModal";
+import VariantSelectorModal from "@/components/VariantSelectorModal";
 import { useCart } from "@/hooks/useCart";
 import { filterDishes, getBlobUrl } from "@/lib/functions";
 
@@ -35,9 +37,24 @@ const categoryImages = {
 export default function AppClient({ categories, initialDishes, config }) {
   const [open, setOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [variantModalOpen, setVariantModalOpen] = useState(false);
+  const [selectedDishForVariant, setSelectedDishForVariant] = useState(null);
   const [items, setItems] = useState(initialDishes);
   const [active, setActive] = useState('All');
   const menuRef = useRef(null);
+
+  // Shared Location & Serviceability State
+  const [locationState, setLocationState] = useState({
+    checking: false,
+    checked: false,
+    isServiceable: null,
+    distanceKm: null,
+    userLat: null,
+    userLng: null,
+    detectedAddress: "",
+    error: "",
+  });
+  const [locationModalOpen, setLocationModalOpen] = useState(false);
 
   const {
     cartItems,
@@ -69,7 +86,11 @@ export default function AppClient({ categories, initialDishes, config }) {
       <div className="relative w-full max-w-[480px] min-h-screen bg-black/95 shadow-[0_0_65px_rgba(0,0,0,0.85)] border-x border-white/5 flex flex-col z-10 overflow-x-hidden pb-16">
         <ComingSoon open={open} setOpen={setOpen} config={config} />
 
-        <Header config={config} />
+        <Header 
+          config={config} 
+          locationState={locationState}
+          onOpenLocation={() => setLocationModalOpen(true)}
+        />
         
         <div className="absolute top-0 w-full">
           <HeroBanner setOpen={setOpen} scrollToMenu={scrollToMenu} config={config} />
@@ -127,6 +148,10 @@ export default function AppClient({ categories, initialDishes, config }) {
                       quantity={qty}
                       onAdd={addItem}
                       onRemove={removeItem}
+                      onSelectVariant={(selected) => {
+                        setSelectedDishForVariant(selected);
+                        setVariantModalOpen(true);
+                      }}
                       setOpen={setOpen} 
                     />
                   );
@@ -147,6 +172,14 @@ export default function AppClient({ categories, initialDishes, config }) {
           onOpenCheckout={() => setCheckoutOpen(true)}
         />
 
+        {/* Portion Sizes & Weight Variant Selector Modal */}
+        <VariantSelectorModal
+          open={variantModalOpen}
+          onClose={() => setVariantModalOpen(false)}
+          dish={selectedDishForVariant}
+          onAddToCart={(payload) => addItem(payload)}
+        />
+
         {/* Slide-Up Bottom Sheet Checkout Modal */}
         <CheckoutModal
           open={checkoutOpen}
@@ -158,6 +191,17 @@ export default function AppClient({ categories, initialDishes, config }) {
           onRemove={removeItem}
           onClearCart={clearCart}
           config={config}
+          locationState={locationState}
+          setLocationState={setLocationState}
+        />
+
+        {/* Auto Popup Location Serviceability Modal */}
+        <LocationPromptModal
+          config={config}
+          locationState={locationState}
+          setLocationState={setLocationState}
+          isOpen={locationModalOpen || undefined}
+          onClose={() => setLocationModalOpen(false)}
         />
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { 
   FiX, 
   FiCheck, 
@@ -33,6 +33,7 @@ export default function AssetPickerModal({
       const params = new URLSearchParams();
       if (selectedFolder !== "All") params.set("folder", selectedFolder);
       if (search.trim()) params.set("search", search.trim());
+      params.set("_t", Date.now().toString());
 
       const res = await fetch(`/api/admin/assets?${params.toString()}`);
       const data = await res.json();
@@ -49,6 +50,16 @@ export default function AssetPickerModal({
 
   useEffect(() => {
     if (open) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (open) {
       fetchAssets();
     }
   }, [open, selectedFolder]);
@@ -61,6 +72,32 @@ export default function AssetPickerModal({
       return () => clearTimeout(timer);
     }
   }, [search]);
+
+  // Combine folders uniquely (case-insensitively)
+  const allFolders = useMemo(() => {
+    const predefined = ["All", "Categories", "Dishes", "Icons", "Banners", "General"];
+    const seen = new Map();
+
+    predefined.forEach((f) => seen.set(f.toLowerCase(), f));
+
+    Object.keys(folderCounts).forEach((f) => {
+      if (!seen.has(f.toLowerCase())) {
+        const canonical = f.charAt(0).toUpperCase() + f.slice(1);
+        seen.set(f.toLowerCase(), canonical);
+      }
+    });
+
+    return Array.from(seen.values());
+  }, [folderCounts]);
+
+  const getFolderCount = (folder) => {
+    if (folder.toLowerCase() === "all") return folderCounts.All || 0;
+    if (folderCounts[folder] !== undefined) return folderCounts[folder];
+    const entry = Object.entries(folderCounts).find(
+      ([k]) => k.toLowerCase() === folder.toLowerCase()
+    );
+    return entry ? entry[1] : 0;
+  };
 
   if (!open) return null;
 
@@ -104,16 +141,6 @@ export default function AssetPickerModal({
     onClose();
   };
 
-  const allFolders = Array.from(new Set([
-    "All",
-    "Categories",
-    "Dishes",
-    "Icons",
-    "Banners",
-    "General",
-    ...Object.keys(folderCounts),
-  ]));
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md">
       <div className="relative w-full max-w-2xl bg-[#141418] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[90vh] max-h-[750px]">
@@ -138,7 +165,7 @@ export default function AssetPickerModal({
           {/* Folders */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
             {allFolders.map((folder) => {
-              const count = folderCounts[folder] || 0;
+              const count = getFolderCount(folder);
               const active = selectedFolder.toLowerCase() === folder.toLowerCase();
               return (
                 <button
@@ -226,7 +253,7 @@ export default function AssetPickerModal({
                   >
                     <div className="relative flex-1 w-full flex items-center justify-center p-1.5 overflow-hidden">
                       <img
-                        src={asset.url}
+                        src={`${asset.url}${asset.url.includes('?') ? '&' : '?'}t=${asset.uploadedAt ? new Date(asset.uploadedAt).getTime() : ''}`}
                         alt={asset.name}
                         loading="lazy"
                         className="max-h-full max-w-full object-contain rounded"

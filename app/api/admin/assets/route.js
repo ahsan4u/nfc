@@ -2,6 +2,18 @@ import { NextResponse } from 'next/server';
 import { list, del } from '@vercel/blob';
 import { isAdminAuthenticated } from '@/lib/admin-auth';
 
+function formatFolderName(str) {
+  if (!str) return 'General';
+  const s = str.trim();
+  const lower = s.toLowerCase();
+  if (lower === 'categories') return 'Categories';
+  if (lower === 'dishes') return 'Dishes';
+  if (lower === 'icons') return 'Icons';
+  if (lower === 'banners') return 'Banners';
+  if (lower === 'general') return 'General';
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 function inferFolderAndName(pathname) {
   // Normalize path removing nfc/ prefix
   const cleanPath = pathname.replace(/^nfc\//, '');
@@ -13,11 +25,12 @@ function inferFolderAndName(pathname) {
       const sub = parts[1].toLowerCase();
       if (sub === 'categories') return { folder: 'Categories', name: parts.slice(2).join('/') };
       if (sub === 'dishes') return { folder: 'Dishes', name: parts.slice(2).join('/') };
-      return { folder: parts[1], name: parts.slice(2).join('/') };
+      return { folder: formatFolderName(parts[1]), name: parts.slice(2).join('/') };
     }
     if (dir === 'icons') return { folder: 'Icons', name: parts.slice(1).join('/') };
     if (dir === 'banners') return { folder: 'Banners', name: parts.slice(1).join('/') };
-    return { folder: parts[0], name: parts.slice(1).join('/') };
+    if (dir === 'general') return { folder: 'General', name: parts.slice(1).join('/') };
+    return { folder: formatFolderName(parts[0]), name: parts.slice(1).join('/') };
   }
 
   const filename = parts[0];
@@ -50,7 +63,7 @@ export async function GET(request) {
         name: name || blob.pathname.split('/').pop(),
         size: blob.size,
         uploadedAt: blob.uploadedAt,
-        folder: folder || 'General',
+        folder: formatFolderName(folder),
         type: 'image',
       };
     });
@@ -58,7 +71,7 @@ export async function GET(request) {
     // Compute folder counts
     const folderCounts = { All: allAssets.length };
     for (const asset of allAssets) {
-      const f = asset.folder;
+      const f = asset.folder || 'General';
       folderCounts[f] = (folderCounts[f] || 0) + 1;
     }
 
@@ -69,8 +82,8 @@ export async function GET(request) {
 
     let filtered = allAssets;
 
-    if (selectedFolder && selectedFolder !== 'All') {
-      filtered = filtered.filter((a) => a.folder.toLowerCase() === selectedFolder.toLowerCase());
+    if (selectedFolder && selectedFolder.toLowerCase() !== 'all') {
+      filtered = filtered.filter((a) => (a.folder || 'General').toLowerCase() === selectedFolder.toLowerCase());
     }
 
     if (search?.trim()) {
