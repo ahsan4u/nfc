@@ -33,8 +33,8 @@ export default function CartFloatingBar({ totalCount, totalPrice, deliveryTime, 
                 </span>
               </div>
               <div className="flex items-center gap-1 text-[9px] text-gray-400 font-bold mt-0.5">
-                <FiClock size={10} className="text-amber-400" />
-                <span>Delivery in <span className="text-gray-200">{deliveryTime || "25-35 mins"}</span></span>
+                <span className="text-amber-400">⚡</span>
+                <span className="text-gray-300">Fresh & Fast Delivery</span>
               </div>
             </div>
           </div>

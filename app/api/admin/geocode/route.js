@@ -35,7 +35,7 @@ export async function GET(request) {
     const rawServiceableAreas = searchParams.get('serviceable_areas') || 'Anwak, Sirsa, Khalispur, Nizamabad';
 
     const headers = {
-      'User-Agent': 'NFC-Nawab-Sahab-Store/1.0 (admin@thenawabsahab.com)',
+      'User-Agent': 'Store-Delivery-Service/1.0',
       'Accept-Language': 'en',
     };
 

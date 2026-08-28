@@ -75,8 +75,6 @@ export default function AppClient({ categories, initialDishes, config }) {
     setActive(category);
   }
 
-  const unavailableMsg = config?.unavailable_text || "Currently Unavailable";
-
   return (
     <div className="relative min-h-screen w-full bg-[#030303] text-white flex justify-center overflow-x-hidden">
       {/* Background Neon sparks/lasers */}
@@ -88,8 +86,6 @@ export default function AppClient({ categories, initialDishes, config }) {
 
         <Header 
           config={config} 
-          locationState={locationState}
-          onOpenLocation={() => setLocationModalOpen(true)}
         />
         
         <div className="absolute top-0 w-full">
@@ -128,7 +124,7 @@ export default function AppClient({ categories, initialDishes, config }) {
         {items.length < 1 ? (
           <p className="text-center my-[15vh]">
             <span className="px-6 py-3 bg-red-700/80 text-white rounded-xl backdrop-blur-sm border border-red-500/50">
-              {unavailableMsg}
+              Currently Unavailable
             </span>
           </p>
         ) : (
@@ -195,14 +191,14 @@ export default function AppClient({ categories, initialDishes, config }) {
           setLocationState={setLocationState}
         />
 
-        {/* Auto Popup Location Serviceability Modal */}
-        <LocationPromptModal
+        {/* Auto Popup Location Modal (Commented out as requested) */}
+        {/* <LocationPromptModal
           config={config}
           locationState={locationState}
           setLocationState={setLocationState}
           isOpen={locationModalOpen || undefined}
           onClose={() => setLocationModalOpen(false)}
-        />
+        /> */}
       </div>
     </div>
   );

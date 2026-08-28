@@ -35,37 +35,41 @@ export default function CheckoutModal({
   locationState: externalLocState,
   setLocationState: externalSetLocState,
 }) {
+  // Parse configured delivery locations
+  const deliveryLocations = React.useMemo(() => {
+    try {
+      if (!config?.delivery_locations_json) {
+        return [{ id: "loc_1", name: "Main Town / Store Area", charge: 0, time: config?.delivery_time || "25-35 mins" }];
+      }
+      const parsed = typeof config.delivery_locations_json === 'string'
+        ? JSON.parse(config.delivery_locations_json)
+        : config.delivery_locations_json;
+      return Array.isArray(parsed) && parsed.length > 0
+        ? parsed
+        : [{ id: "loc_1", name: "Main Town / Store Area", charge: 0, time: config?.delivery_time || "25-35 mins" }];
+    } catch {
+      return [{ id: "loc_1", name: "Main Town / Store Area", charge: 0, time: config?.delivery_time || "25-35 mins" }];
+    }
+  }, [config?.delivery_locations_json, config?.delivery_time]);
+
+  const [selectedLocId, setSelectedLocId] = useState(() => deliveryLocations[0]?.id || "loc_1");
   const [customer, setCustomer] = useState({
     name: "",
     phone: "",
     email: "",
+    landmark: "",
     address: "",
   });
   const [paymentMethod, setPaymentMethod] = useState("razorpay"); // 'razorpay' or 'cod'
   const [processing, setProcessing] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(null);
 
-  // Local fallback GPS Serviceability State if not passed from parent
-  const [localLocState, setLocalLocState] = useState({
-    checking: false,
-    checked: false,
-    isServiceable: null,
-    distanceKm: null,
-    userLat: null,
-    userLng: null,
-    detectedAddress: "",
-    error: "",
-  });
-
-  const locState = externalLocState || localLocState;
-  const setLocState = externalSetLocState || setLocalLocState;
-
-  // Sync detected address to customer address input if empty
+  // Sync selected location if deliveryLocations change
   useEffect(() => {
-    if (locState?.detectedAddress && !customer.address.trim()) {
-      setCustomer((c) => ({ ...c, address: locState.detectedAddress }));
+    if (deliveryLocations.length > 0 && !deliveryLocations.some(l => l.id === selectedLocId)) {
+      setSelectedLocId(deliveryLocations[0]?.id || "");
     }
-  }, [locState?.detectedAddress, open]);
+  }, [deliveryLocations, selectedLocId]);
 
   // Lock body scroll while modal is open
   useEffect(() => {
@@ -80,79 +84,20 @@ export default function CheckoutModal({
 
   if (!open) return null;
 
-  const deliveryTime = config?.delivery_time || "25-35 mins";
-  const storeLat = parseFloat(config?.store_lat) || 26.8467;
-  const storeLng = parseFloat(config?.store_lng) || 80.9462;
-  const maxRadiusKm = parseFloat(config?.delivery_radius_km) || 5;
-  const isServiceCheckEnabled = config?.serviceability_check_enabled !== "false";
+  const selectedLoc = deliveryLocations.find(l => String(l.id) === String(selectedLocId)) || deliveryLocations[0];
+  const deliveryCharge = selectedLoc ? (parseFloat(selectedLoc.charge) || 0) : 0;
+  const totalWithDelivery = totalPrice + deliveryCharge;
+  const deliveryTime = selectedLoc?.time || config?.delivery_time || "25-35 mins";
 
-  // GPS Location Checker Handler
+  /*
+  ==================================================================
+  GPS SERVICEABILITY CHECK (COMMENTED OUT AS REQUESTED)
+  ==================================================================
   const verifyServiceability = () => {
-    if (!navigator.geolocation) {
-      toast.error("Geolocation is not supported on this device/browser");
-      return;
-    }
-
-    setLocState((prev) => ({ ...prev, checking: true, error: "" }));
-    const toastId = toast.loading("Detecting your current location...");
-
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const uLat = pos.coords.latitude;
-        const uLng = pos.coords.longitude;
-        const dist = calculateDistanceKm(storeLat, storeLng, uLat, uLng);
-        const serviceable = dist !== null ? dist <= maxRadiusKm : true;
-
-        let addressText = "";
-        try {
-          const geoRes = await fetch(
-            `/api/admin/geocode?lat=${encodeURIComponent(uLat)}&lng=${encodeURIComponent(uLng)}`
-          );
-          const geoResult = await geoRes.json();
-          if (geoResult?.data?.display_name) {
-            addressText = geoResult.data.display_name;
-            if (!customer.address.trim()) {
-              setCustomer((c) => ({ ...c, address: addressText }));
-            }
-          }
-        } catch {
-          // Geocode failed gracefully
-        }
-
-        setLocState({
-          checking: false,
-          checked: true,
-          isServiceable: serviceable,
-          distanceKm: dist,
-          userLat: uLat,
-          userLng: uLng,
-          detectedAddress: addressText,
-          error: "",
-        });
-
-        if (serviceable) {
-          toast.success(`Delivery available! ~${dist} km from store`, { id: toastId });
-        } else {
-          toast.error(`Out of delivery area (${dist} km away, max is ${maxRadiusKm} km)`, {
-            id: toastId,
-            duration: 5000,
-          });
-        }
-      },
-      (err) => {
-        setLocState((prev) => ({
-          ...prev,
-          checking: false,
-          checked: true,
-          error: "Permission denied or location unavailable",
-        }));
-        toast.error("Location access denied. Please type your delivery address manually.", {
-          id: toastId,
-        });
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+    // Geolocation verification disabled
   };
+  ==================================================================
+  */
 
   const handleCheckout = async (e) => {
     e.preventDefault();
@@ -169,16 +114,16 @@ export default function CheckoutModal({
       toast.error("Please enter a valid email address for order confirmation");
       return;
     }
-    if (!customer.address.trim()) {
-      toast.error("Please enter your complete delivery address");
+    if (!customer.landmark.trim()) {
+      toast.error("Please enter your landmark / street / house details");
       return;
     }
 
-    // Check if location is confirmed out of radius
-    if (isServiceCheckEnabled && locState.checked && locState.isServiceable === false) {
-      toast.error(`Sorry, your location is ${locState.distanceKm} km away. We only deliver within ${maxRadiusKm} km.`);
-      return;
-    }
+    const fullFormattedAddress = [
+      customer.landmark.trim(),
+      selectedLoc?.name ? `Area: ${selectedLoc.name}` : "",
+      customer.address.trim() ? `Note: ${customer.address.trim()}` : ""
+    ].filter(Boolean).join(", ");
 
     setProcessing(true);
 
@@ -189,11 +134,16 @@ export default function CheckoutModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: cartItems,
+          delivery_charge: deliveryCharge,
           customer: {
-            ...customer,
-            user_lat: locState.userLat,
-            user_lng: locState.userLng,
-            distance_km: locState.distanceKm,
+            name: customer.name.trim(),
+            phone: customer.phone.trim(),
+            email: customer.email.trim(),
+            landmark: customer.landmark.trim(),
+            selected_location: selectedLoc?.name || "Main Area",
+            delivery_time: deliveryTime,
+            delivery_charge: deliveryCharge,
+            address: fullFormattedAddress,
           },
           payment_method: paymentMethod,
         }),
@@ -209,10 +159,17 @@ export default function CheckoutModal({
         setOrderSuccess({
           order_id: orderData.order_id,
           payment_method: "cod",
-          amount: totalPrice,
+          amount: totalWithDelivery,
+          delivery_charge: deliveryCharge,
+          delivery_time: deliveryTime,
           customer: {
-            ...customer,
-            distance_km: locState.distanceKm,
+            name: customer.name.trim(),
+            phone: customer.phone.trim(),
+            email: customer.email.trim(),
+            landmark: customer.landmark.trim(),
+            selected_location: selectedLoc?.name || "Main Area",
+            delivery_time: deliveryTime,
+            address: fullFormattedAddress,
           },
           items: cartItems,
         });
@@ -254,30 +211,49 @@ export default function CheckoutModal({
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
                 order_details: {
-                  amount: totalPrice,
-                  customer,
+                  amount: totalWithDelivery,
+                  delivery_charge: deliveryCharge,
+                  customer: {
+                    name: customer.name.trim(),
+                    phone: customer.phone.trim(),
+                    email: customer.email.trim(),
+                    landmark: customer.landmark.trim(),
+                    selected_location: selectedLoc?.name || "Main Area",
+                    delivery_time: deliveryTime,
+                    address: fullFormattedAddress,
+                  },
                   items: cartItems,
                 }
               }),
             });
 
             const verifyData = await verifyRes.json();
-            if (verifyData.success) {
-              setOrderSuccess({
-                order_id: response.razorpay_order_id,
-                payment_id: response.razorpay_payment_id,
-                payment_method: "razorpay",
-                amount: totalPrice,
-                customer,
-                items: cartItems,
-              });
-              onClearCart();
-              toast.success("Payment successful! Order placed.");
-            } else {
-              toast.error(verifyData.message || "Payment verification failed");
+            if (!verifyRes.ok || !verifyData.success) {
+              throw new Error(verifyData.message || "Payment verification failed");
             }
-          } catch {
-            toast.error("Failed to verify payment with server");
+
+            setOrderSuccess({
+              order_id: response.razorpay_order_id,
+              payment_method: "razorpay",
+              amount: totalWithDelivery,
+              delivery_charge: deliveryCharge,
+              delivery_time: deliveryTime,
+              customer: {
+                name: customer.name.trim(),
+                phone: customer.phone.trim(),
+                email: customer.email.trim(),
+                landmark: customer.landmark.trim(),
+                selected_location: selectedLoc?.name || "Main Area",
+                delivery_time: deliveryTime,
+                address: fullFormattedAddress,
+              },
+              items: cartItems,
+            });
+
+            onClearCart();
+            toast.success("Payment successful! Order confirmed.");
+          } catch (verErr) {
+            toast.error(verErr.message || "Payment verification error");
           } finally {
             setProcessing(false);
           }
@@ -285,7 +261,7 @@ export default function CheckoutModal({
         modal: {
           ondismiss: function () {
             setProcessing(false);
-            toast("Payment cancelled by user", { icon: "ℹ️" });
+            toast.error("Payment was cancelled");
           },
         },
       };
@@ -293,7 +269,7 @@ export default function CheckoutModal({
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (err) {
-      toast.error(err.message || "Checkout failed");
+      toast.error(err.message || "Order submission failed");
       setProcessing(false);
     }
   };
@@ -511,68 +487,82 @@ export default function CheckoutModal({
                   </div>
                 </div>
 
-                {/* GPS Location & Serviceability Verification */}
-                {isServiceCheckEnabled && (
-                  <div className="p-2.5 rounded-xl bg-[#141419] border border-white/10 space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-gray-300">
-                        <FiNavigation size={12} className="text-amber-400" />
-                        <span>Delivery Area Check</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={verifyServiceability}
-                        disabled={locState.checking}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 text-[10px] font-bold border border-amber-500/30 transition-all cursor-pointer disabled:opacity-50"
-                      >
-                        <FiCrosshair size={11} />
-                        <span>{locState.checking ? "Checking..." : locState.checked ? "Re-check GPS" : "Use Current GPS"}</span>
-                      </button>
-                    </div>
+                {/* 1. Delivery Location Selection */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-amber-400 flex items-center justify-between">
+                    <span className="flex items-center gap-1">
+                      <FiMapPin size={11} />
+                      <span>Select Delivery Area *</span>
+                    </span>
+                    <span className="text-[9px] text-gray-400 font-normal">Delivery charges vary by area</span>
+                  </label>
 
-                    {/* Result Badge */}
-                    {locState.checked && locState.isServiceable !== null && (
-                      <div
-                        className={`p-2 rounded-lg flex items-start gap-2 text-[11px] ${
-                          locState.isServiceable
-                            ? "bg-green-500/10 border border-green-500/30 text-green-300"
-                            : "bg-red-500/10 border border-red-500/30 text-red-300"
-                        }`}
-                      >
-                        {locState.isServiceable ? (
-                          <FiCheckCircle className="text-green-400 mt-0.5 flex-shrink-0" size={14} />
-                        ) : (
-                          <FiAlertTriangle className="text-red-400 mt-0.5 flex-shrink-0" size={14} />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold">
-                            {locState.isServiceable
-                              ? `Delivery Available! (~${locState.distanceKm} km away)`
-                              : `Out of Delivery Area (${locState.distanceKm} km away)`}
-                          </p>
-                          <p className="text-[10px] opacity-80 mt-0.5">
-                            {locState.isServiceable
-                              ? `Your location is within our ${maxRadiusKm} km kitchen delivery zone.`
-                              : `We currently deliver within ${maxRadiusKm} km of our kitchen.`}
-                          </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {deliveryLocations.map((loc) => {
+                      const isSelected = String(loc.id) === String(selectedLocId);
+                      const isFree = !loc.charge || parseFloat(loc.charge) === 0;
+                      return (
+                        <div
+                          key={loc.id}
+                          onClick={() => setSelectedLocId(loc.id)}
+                          className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                            isSelected
+                              ? "bg-amber-500/15 border-amber-500 shadow-md shadow-amber-500/10 scale-[1.01]"
+                              : "bg-[#181820] border-white/10 hover:border-white/20"
+                          }`}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isSelected ? "bg-amber-400 ring-2 ring-amber-400/40" : "bg-gray-600"}`} />
+                              <p className="text-xs font-bold text-white truncate">{loc.name}</p>
+                            </div>
+                            {loc.time && (
+                              <p className="text-[9px] text-gray-400 pl-3.5 mt-0.5">{loc.time}</p>
+                            )}
+                          </div>
+
+                          <div className="flex-shrink-0">
+                            {isFree ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-[10px] font-black uppercase">
+                                <FiCheck size={10} />
+                                <span>Free</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-black">
+                                +₹{loc.charge}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })}
                   </div>
-                )}
+                </div>
 
+                {/* 2. Landmark / Street / House No */}
                 <div>
-                  <div className="relative flex items-start">
-                    <FiMapPin className="absolute left-3 top-2.5 text-gray-500" size={13} />
-                    <textarea
-                      rows="2"
-                      value={customer.address}
-                      onChange={(e) => setCustomer({ ...customer, address: e.target.value })}
-                      placeholder="Complete Delivery Address & Landmark *"
-                      className="w-full bg-[#181820] border border-white/10 focus:border-amber-500/50 rounded-xl pl-8 pr-3 py-2 text-xs text-white placeholder-gray-500 outline-none resize-none"
+                  <div className="relative flex items-center">
+                    <FiMapPin className="absolute left-3 text-amber-400" size={13} />
+                    <input
+                      type="text"
+                      value={customer.landmark}
+                      onChange={(e) => setCustomer({ ...customer, landmark: e.target.value })}
+                      placeholder="Landmark / House No / Street Details *"
+                      className="w-full bg-[#181820] border border-white/10 focus:border-amber-500/50 rounded-xl pl-8 pr-3 py-2 text-xs text-white placeholder-gray-500 outline-none"
                       required
                     />
                   </div>
+                </div>
+
+                {/* 3. Additional Delivery Notes (Optional) */}
+                <div>
+                  <input
+                    type="text"
+                    value={customer.address}
+                    onChange={(e) => setCustomer({ ...customer, address: e.target.value })}
+                    placeholder="Specific delivery notes or instructions (optional)"
+                    className="w-full bg-[#181820] border border-white/10 focus:border-amber-500/50 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 outline-none"
+                  />
                 </div>
 
                 {/* Payment Method Selector */}
@@ -622,12 +612,16 @@ export default function CheckoutModal({
                     <span>{formatPrice(totalPrice)}</span>
                   </div>
                   <div className="flex justify-between text-gray-400">
-                    <span>Delivery Fee:</span>
-                    <span className="text-green-400 font-bold">FREE</span>
+                    <span>Delivery Fee ({selectedLoc?.name || "Standard"}):</span>
+                    {deliveryCharge === 0 ? (
+                      <span className="text-green-400 font-bold uppercase">FREE</span>
+                    ) : (
+                      <span className="text-amber-400 font-bold">{formatPrice(deliveryCharge)}</span>
+                    )}
                   </div>
                   <div className="border-t border-white/10 pt-1.5 flex justify-between text-sm font-black text-white">
                     <span>To Pay:</span>
-                    <span className="text-amber-400">{formatPrice(totalPrice)}</span>
+                    <span className="text-amber-400">{formatPrice(totalWithDelivery)}</span>
                   </div>
                 </div>
               </form>
@@ -649,8 +643,8 @@ export default function CheckoutModal({
               ) : (
                 <span>
                   {paymentMethod === "razorpay"
-                    ? `Proceed to Pay ${formatPrice(totalPrice)}`
-                    : `Confirm COD Order (${formatPrice(totalPrice)})`}
+                    ? `Proceed to Pay ${formatPrice(totalWithDelivery)}`
+                    : `Confirm COD Order (${formatPrice(totalWithDelivery)})`}
                 </span>
               )}
             </button>

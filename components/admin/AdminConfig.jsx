@@ -16,12 +16,19 @@ import {
   FiMail,
   FiLock,
   FiServer,
-  FiMapPin
+  FiMapPin,
+  FiPlus,
+  FiTrash2,
+  FiEdit2,
+  FiDollarSign,
+  FiCheckCircle,
+  FiClock,
+  FiAlertCircle
 } from "react-icons/fi";
 import toast from "react-hot-toast";
 import { getBlobUrl } from "@/lib/functions";
 import AssetPickerModal from "./AssetPickerModal";
-import StoreRadiusMap from "./StoreRadiusMap";
+// import StoreRadiusMap from "./StoreRadiusMap";
 
 const TAB_FIELDS = {
   branding: ["site_title", "tagline", "logo_image"],
@@ -69,76 +76,65 @@ const TAB_FIELDS = {
     "admin_notification_email",
   ],
   radius: [
-    "store_lat",
-    "store_lng",
-    "delivery_radius_km",
+    "delivery_locations_json",
     "store_address",
     "serviceability_check_enabled",
   ],
-  general: ["unavailable_text", "delivery_time"],
 };
 
 export default function AdminConfig() {
-  const [config, setConfig] = useState({
-    site_title: "THE NAWAB SAHAB",
-    tagline: "CAFE • BAKERY • SWEETS",
-    logo_image: "/icons/logo2.png",
-    hero_banner_image: "/hero-banner.jpg",
-    hero_dish_image: "/dish.png",
-    hero_title: "Enjoy our Delicious Meal",
-    hero_desc: "Classic recipes with a modern twist, made fresh with care food that delights, comforts, and truly leaves a lasting mark.",
-    hero_button_text: "Explore Dishes",
-    coming_soon_image: "/commin-soon.png",
-    founder_image: "/new-founder.png",
-    founder_badge: "THE VISIONARY",
-    founder_name: "Nawab Sahab",
-    founder_quote: "“We believe great food is more than a meal. It is an experience, a memory, and a reason to come together. At The Nawab Sahab, every detail is created to make every visit feel special.”",
-    founder_role: "Founder & CEO",
-    footer_logo_image: "/icons/logo2.png",
-    legacy_year: "LEGACY 1974 | ESTD 2026",
-    footer_follow_title: "Follow our Journey",
-    footer_copyright: "© 2026 NFC CAFE • All Rights Reserved",
-    whatsapp_number: "919838383836",
-    instagram_url: "https://www.instagram.com/the.nawabsahab?igsh=MWU5aGd0MXE1cXNoZQ==",
-    threads_url: "https://www.threads.net/@the.nawabsahab",
-    youtube_url: "https://youtube.com/@the.nawabsahab?si=AuiFrjutTZ17F_49",
-    facebook_url: "https://www.facebook.com/share/1JBAnSqFok/",
-    unavailable_text: "Currently Unavailable",
-    delivery_time: "25-35 mins",
-
-    // Google Console & SEO
-    meta_title: "THE NAWAB SAHAB | Cafe • Bakery • Sweets",
-    meta_description: "Welcome to The Nawab Sahab Cafe, Bakery & Sweets. Order delicious street bites, gourmet pizzas, burgers, fresh bakery & royal sweets online.",
-    meta_keywords: "Nawab Sahab, NFC Cafe, Bakery, Sweets, Burgers, Pizzas, Fast Food, Online Food Delivery",
-    favicon_image: "/icons/og-logo2.png",
-    og_image: "/hero-banner.jpg",
-    google_site_verification: "",
-    canonical_url: "https://thenawabsahab.com",
-
-    // Email & SMTP Setup
-    smtp_host: "",
-    smtp_port: "587",
-    smtp_user: "",
-    smtp_pass: "",
-    smtp_from_email: "",
-    admin_notification_email: "",
-
-    // Delivery Location & Radius Setup
-    store_lat: "26.8467",
-    store_lng: "80.9462",
-    delivery_radius_km: "5",
-    store_address: "The Nawab Sahab, Hazratganj, Lucknow, Uttar Pradesh",
-    serviceable_areas_list: "Anwak, Sirsa, Khalispur, Nizamabad",
-    serviceability_check_enabled: "true"
-  });
+  const [config, setConfig] = useState({});
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("branding");
   const [showPassword, setShowPassword] = useState(false);
 
+  // Delivery Location Management State
+  const [showLocationForm, setShowLocationForm] = useState(false);
+  const [editingLocationIndex, setEditingLocationIndex] = useState(null);
+  const [locationForm, setLocationForm] = useState({
+    name: "",
+    charge: "0",
+    time: "25-35 mins"
+  });
+
+  // Email Test State
+  const [testingEmail, setTestingEmail] = useState(false);
+
   // Asset Picker State
   const [pickerField, setPickerField] = useState(null);
+
+  const handleSendTestEmail = async () => {
+    setTestingEmail(true);
+    const toastId = toast.loading("Sending test email using saved SMTP credentials...");
+    try {
+      // First save current tab fields so credentials in DB are up to date
+      await fetch("/api/admin/config", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          smtp_host: config.smtp_host,
+          smtp_port: config.smtp_port,
+          smtp_user: config.smtp_user,
+          smtp_pass: config.smtp_pass,
+          smtp_from_email: config.smtp_from_email,
+          admin_notification_email: config.admin_notification_email,
+        }),
+      });
+
+      const res = await fetch("/api/admin/test-email", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Test email failed");
+      }
+      toast.success(data.message || "Test email sent successfully!", { id: toastId });
+    } catch (err) {
+      toast.error(err.message || "Failed to send test email", { id: toastId });
+    } finally {
+      setTestingEmail(false);
+    }
+  };
 
   const fetchConfig = async () => {
     setLoading(true);
@@ -171,6 +167,71 @@ export default function AdminConfig() {
     }
   };
 
+  // Parse delivery locations array safely
+  const getDeliveryLocations = () => {
+    try {
+      if (!config.delivery_locations_json) return [];
+      const parsed = typeof config.delivery_locations_json === 'string' 
+        ? JSON.parse(config.delivery_locations_json) 
+        : config.delivery_locations_json;
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const handleOpenAddLocation = () => {
+    setEditingLocationIndex(null);
+    setLocationForm({ name: "", charge: "0", time: config.delivery_time || "25-35 mins" });
+    setShowLocationForm(true);
+  };
+
+  const handleOpenEditLocation = (index, loc) => {
+    setEditingLocationIndex(index);
+    setLocationForm({
+      name: loc.name || "",
+      charge: String(loc.charge ?? 0),
+      time: loc.time || "25-35 mins"
+    });
+    setShowLocationForm(true);
+  };
+
+  const handleSaveLocation = (e) => {
+    if (e) e.preventDefault();
+    if (!locationForm.name.trim()) {
+      toast.error("Please enter a location / area name");
+      return;
+    }
+
+    const locations = [...getDeliveryLocations()];
+    const newLoc = {
+      id: editingLocationIndex !== null && locations[editingLocationIndex]?.id 
+        ? locations[editingLocationIndex].id 
+        : `loc_${Date.now().toString().slice(-6)}`,
+      name: locationForm.name.trim(),
+      charge: Math.max(0, parseFloat(locationForm.charge) || 0),
+      time: locationForm.time.trim() || config.delivery_time || "25-35 mins"
+    };
+
+    if (editingLocationIndex !== null && editingLocationIndex >= 0) {
+      locations[editingLocationIndex] = newLoc;
+      toast.success(`Updated location: ${newLoc.name}`);
+    } else {
+      locations.push(newLoc);
+      toast.success(`Added new delivery location: ${newLoc.name}`);
+    }
+
+    handleChange("delivery_locations_json", JSON.stringify(locations));
+    setShowLocationForm(false);
+    setEditingLocationIndex(null);
+  };
+
+  const handleDeleteLocation = (index) => {
+    const locations = getDeliveryLocations().filter((_, i) => i !== index);
+    handleChange("delivery_locations_json", JSON.stringify(locations));
+    toast.success("Location removed");
+  };
+
   const tabs = [
     { id: "branding", label: "Branding & Header", icon: FiGlobe },
     { id: "hero", label: "Hero & Banner", icon: FiLayout },
@@ -178,8 +239,7 @@ export default function AdminConfig() {
     { id: "footer", label: "Footer & Social", icon: FiPhone },
     { id: "seo", label: "Google Console & SEO", icon: FiSearch },
     { id: "email", label: "Email Setup", icon: FiMail },
-    { id: "radius", label: "Delivery Radius & Map", icon: FiMapPin },
-    { id: "general", label: "Store Messages", icon: FiLayers },
+    { id: "radius", label: "Delivery Areas & Charges", icon: FiMapPin },
   ];
 
   const handleSave = async (e) => {
@@ -887,44 +947,238 @@ export default function AdminConfig() {
 
               <div>
                 <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                  Admin Notification Email
+                  Admin Notification Email(s) (Comma-separated)
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   value={config.admin_notification_email || ""}
                   onChange={(e) => handleChange("admin_notification_email", e.target.value)}
-                  placeholder="e.g. owner@thenawabsahab.com"
+                  placeholder="e.g. owner@thenawabsahab.com, manager@thenawabsahab.com"
                   className="w-full mt-1 bg-[#101014] border border-white/10 focus:border-amber-500/50 rounded-xl px-3 py-2 text-xs text-white outline-none"
                 />
               </div>
             </div>
+
+            {/* Test Email Action Card */}
+            <div className="p-3.5 rounded-xl bg-[#101015] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3">
+              <div className="space-y-0.5">
+                <p className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <FiCheckCircle size={13} className="text-amber-400" />
+                  <span>Verify Email Dispatch</span>
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSendTestEmail}
+                disabled={testingEmail || !config.smtp_host || !config.smtp_user || !config.smtp_pass}
+                className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 hover:text-amber-300 text-xs font-bold border border-amber-500/40 transition-all cursor-pointer disabled:opacity-40 flex-shrink-0"
+              >
+                {testingEmail ? (
+                  <div className="w-3.5 h-3.5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <FiMail size={13} />
+                )}
+                <span>{testingEmail ? "Sending Test..." : "Send Test Email"}</span>
+              </button>
+            </div>
           </div>
         )}
 
-        {/* 7. DELIVERY RADIUS & MAP */}
+        {/* 7. DELIVERY AREAS & CHARGES */}
         {activeTab === "radius" && (
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-2">
-              <h3 className="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-2">
-                <FiMapPin size={14} />
-                <span>Store Location & Serviceable Radius</span>
-              </h3>
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={config.serviceability_check_enabled === "true" || config.serviceability_check_enabled === true}
-                  onChange={(e) => handleChange("serviceability_check_enabled", e.target.checked ? "true" : "false")}
-                  className="w-3.5 h-3.5 rounded bg-[#1b1b22] border-white/20 text-amber-500 accent-amber-500 cursor-pointer"
-                />
-                <span className="text-[11px] font-bold text-gray-300">
-                  Enable GPS Check at Checkout
-                </span>
-              </label>
+          <div className="space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-3">
+              <div>
+                <h3 className="text-xs font-bold text-amber-400 uppercase tracking-widest flex items-center gap-2">
+                  <FiMapPin size={14} />
+                  <span>Serviceable Delivery Areas & Charges</span>
+                </h3>
+                <p className="text-[11px] text-gray-400 mt-0.5">
+                  Add the areas/villages you deliver to and set their delivery charge (₹0 = Free Delivery).
+                </p>
+              </div>
+
+              {!showLocationForm && (
+                <button
+                  type="button"
+                  onClick={handleOpenAddLocation}
+                  className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black text-xs font-black shadow-lg shadow-amber-500/20 active:scale-95 transition-all cursor-pointer flex-shrink-0 text-center"
+                >
+                  <FiPlus size={14} />
+                  <span>Add Delivery Area</span>
+                </button>
+              )}
             </div>
 
-            <div>
+            {/* Inline Add / Edit Location Batch Card */}
+            {showLocationForm && (
+              <div className="p-4 rounded-2xl bg-[#16161f] border border-amber-500/40 shadow-xl shadow-amber-500/5 space-y-3.5 animate-fadeIn">
+                <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                  <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                    {editingLocationIndex !== null ? <FiEdit2 size={13} className="text-amber-400" /> : <FiPlus size={13} className="text-amber-400" />}
+                    <span>{editingLocationIndex !== null ? "Edit Delivery Area" : "Add New Delivery Area"}</span>
+                  </h4>
+                  <span className="text-[10px] text-gray-400">Set ₹0 for Free Delivery</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                      Location / Area Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={locationForm.name}
+                      onChange={(e) => setLocationForm({ ...locationForm, name: e.target.value })}
+                      placeholder="e.g. Anwak, Nizamabad, Hazratganj"
+                      className="w-full mt-1 bg-[#101014] border border-white/10 focus:border-amber-500/50 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                      autoFocus
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                      Delivery Charge (₹) *
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={locationForm.charge}
+                      onChange={(e) => setLocationForm({ ...locationForm, charge: e.target.value })}
+                      placeholder="0 for Free Delivery"
+                      className="w-full mt-1 bg-[#101014] border border-white/10 focus:border-amber-500/50 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                      Est. Delivery Time
+                    </label>
+                    <input
+                      type="text"
+                      value={locationForm.time}
+                      onChange={(e) => setLocationForm({ ...locationForm, time: e.target.value })}
+                      placeholder="e.g. 20-30 mins"
+                      className="w-full mt-1 bg-[#101014] border border-white/10 focus:border-amber-500/50 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowLocationForm(false);
+                      setEditingLocationIndex(null);
+                    }}
+                    className="px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveLocation}
+                    className="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-black shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer flex items-center gap-1"
+                  >
+                    <FiCheck size={14} />
+                    <span>{editingLocationIndex !== null ? "Update Area" : "Save Area"}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* List of Configured Delivery Locations */}
+            <div className="space-y-2.5">
+              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center justify-between">
+                <span>Configured Serviceable Areas ({getDeliveryLocations().length})</span>
+                <span className="text-gray-500 text-[10px]">Selectable by customers at checkout</span>
+              </label>
+
+              {getDeliveryLocations().length === 0 ? (
+                <div className="p-8 rounded-2xl bg-[#101014] border border-white/5 text-center space-y-2">
+                  <FiMapPin className="mx-auto text-gray-600" size={28} />
+                  <p className="text-xs text-gray-400 font-bold">No delivery locations added yet</p>
+                  <p className="text-[11px] text-gray-500 max-w-xs mx-auto">
+                    Add your delivery areas so customers can select where to receive their order.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleOpenAddLocation}
+                    className="mt-2 inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 text-xs font-bold border border-amber-500/30 transition-all cursor-pointer text-center"
+                  >
+                    <FiPlus size={13} />
+                    <span>Add First Location</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {getDeliveryLocations().map((loc, idx) => {
+                    const isFree = !loc.charge || parseFloat(loc.charge) === 0;
+                    return (
+                      <div
+                        key={loc.id || idx}
+                        className="p-3.5 rounded-2xl bg-[#111116] border border-white/10 hover:border-amber-500/30 transition-all flex items-center justify-between gap-3 group"
+                      >
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <FiMapPin size={13} className="text-amber-400 flex-shrink-0" />
+                            <h4 className="text-xs font-black text-white truncate">{loc.name}</h4>
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-0.5 flex-wrap">
+                            {/* Delivery Fee Badge */}
+                            {isFree ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-green-500/15 border border-green-500/30 text-green-400 text-[10px] font-black tracking-wide uppercase">
+                                <FiCheckCircle size={10} />
+                                <span>Free Delivery</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[10px] font-black tracking-wide">
+                                <span>₹{loc.charge} Delivery Fee</span>
+                              </span>
+                            )}
+
+                            {loc.time && (
+                              <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                                <FiClock size={10} className="text-gray-500" />
+                                <span>{loc.time}</span>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditLocation(idx, loc)}
+                            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-amber-400 transition-colors cursor-pointer"
+                            title="Edit Location"
+                          >
+                            <FiEdit2 size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteLocation(idx)}
+                            className="p-2 rounded-xl bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
+                            title="Delete Location"
+                          >
+                            <FiTrash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Store Address Field */}
+            <div className="pt-2 border-t border-white/5">
               <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                Store Physical Address / Landmark
+                Store Base / Kitchen Address (Display only)
               </label>
               <input
                 type="text"
@@ -935,60 +1189,25 @@ export default function AdminConfig() {
               />
             </div>
 
-            {/* Interactive Radius Map */}
-            <StoreRadiusMap
-              lat={parseFloat(config.store_lat) || 26.8467}
-              lng={parseFloat(config.store_lng) || 80.9462}
-              radiusKm={parseFloat(config.delivery_radius_km) || 5}
-              onChangeCoordinates={(newLat, newLng) => {
-                setConfig((prev) => ({
-                  ...prev,
-                  store_lat: String(newLat),
-                  store_lng: String(newLng),
-                }));
-              }}
-              onChangeRadius={(newRadius) => {
-                setConfig((prev) => ({
-                  ...prev,
-                  delivery_radius_km: String(newRadius),
-                }));
-              }}
-            />
-          </div>
-        )}
-
-        {/* 8. GENERAL STORE MESSAGES */}
-        {activeTab === "general" && (
-          <div className="space-y-4">
-            <h3 className="text-xs font-bold text-amber-400 uppercase tracking-widest border-b border-white/5 pb-2">
-              Store Messages
-            </h3>
-
-            <div>
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                Menu Empty / Unavailable Notice
-              </label>
-              <input
-                type="text"
-                value={config.unavailable_text || ""}
-                onChange={(e) => handleChange("unavailable_text", e.target.value)}
-                placeholder="e.g. Currently Unavailable"
-                className="w-full mt-1 bg-[#101014] border border-white/10 focus:border-amber-500/50 rounded-xl px-3 py-2 text-xs text-white outline-none"
+            {/* 
+            ===========================================================
+            MAP & GPS RADIUS SECTION (COMMENTED OUT AS REQUESTED)
+            ===========================================================
+            <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-2 opacity-60">
+              <StoreRadiusMap
+                lat={parseFloat(config.store_lat) || 26.8467}
+                lng={parseFloat(config.store_lng) || 80.9462}
+                radiusKm={parseFloat(config.delivery_radius_km) || 5}
+                onChangeCoordinates={(newLat, newLng) => {
+                  setConfig((prev) => ({ ...prev, store_lat: String(newLat), store_lng: String(newLng) }));
+                }}
+                onChangeRadius={(newRadius) => {
+                  setConfig((prev) => ({ ...prev, delivery_radius_km: String(newRadius) }));
+                }}
               />
             </div>
-
-            <div>
-              <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                Estimated Delivery Time Display
-              </label>
-              <input
-                type="text"
-                value={config.delivery_time || ""}
-                onChange={(e) => handleChange("delivery_time", e.target.value)}
-                placeholder="e.g. 25-35 mins"
-                className="w-full mt-1 bg-[#101014] border border-white/10 focus:border-amber-500/50 rounded-xl px-3 py-2 text-xs text-white outline-none"
-              />
-            </div>
+            ===========================================================
+            */}
           </div>
         )}
 

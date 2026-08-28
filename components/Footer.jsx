@@ -7,7 +7,7 @@ export default function Footer({ config }) {
     const footerLogo = getBlobUrl(config?.footer_logo_image || config?.logo_image || "/icons/logo2.png");
     const legacyText = config?.legacy_year || "LEGACY 1974 | ESTD 2026";
     const followTitle = config?.footer_follow_title || "Follow our Journey";
-    const copyright = config?.footer_copyright || "© 2026 NFC CAFE • All Rights Reserved";
+    const copyright = config?.footer_copyright || "© 2026 TNS CAFE • All Rights Reserved";
 
     const whatsappLink = config?.whatsapp_number 
         ? `https://wa.me/${config.whatsapp_number.replace(/[^0-9]/g, '')}` 
@@ -25,7 +25,7 @@ export default function Footer({ config }) {
         <footer className="mt-20 py-12 bg-gradient-to-t from-black to-[#1a1a1a] border-t border-white/5">
             <div className="max-w-[85%] mx-auto flex flex-col sm:flex-row items-center sm:items-start justify-between gap-10">
                 <div className="flex flex-col items-center sm:items-start">
-                    <img src={footerLogo} alt="NFC Logo" className="h-32 mb-4" />
+                    <img src={footerLogo} alt="TNS Logo" className="h-32 mb-4" />
                     <p className="text-amber-500/80 tracking-[0.2em] uppercase text-[10px] font-bold shimmer-text">
                         {legacyText}
                     </p>

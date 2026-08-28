@@ -27,13 +27,18 @@ export async function POST(request) {
 
     // Trigger emails for verified online order
     if (order_details) {
-      sendOrderEmails({
-        order_id: razorpay_order_id,
-        amount: order_details.amount,
-        customer: order_details.customer,
-        items: order_details.items,
-        payment_method: 'razorpay',
-      }).catch(err => console.error("Async online email dispatch error:", err));
+      try {
+        await sendOrderEmails({
+          order_id: razorpay_order_id,
+          amount: order_details.amount,
+          delivery_charge: order_details.delivery_charge || 0,
+          customer: order_details.customer,
+          items: order_details.items,
+          payment_method: 'razorpay',
+        });
+      } catch (err) {
+        console.error("Async online email dispatch error:", err);
+      }
     }
 
     return NextResponse.json({

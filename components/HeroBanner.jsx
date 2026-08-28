@@ -19,7 +19,7 @@ export default function HeroBanner({ setOpen, scrollToMenu, config }) {
             {/* Background banner image that dims when visible */}
             <motion.img 
                 src={bannerImg} 
-                alt="NFC Hero Banner" 
+                alt="TNS Hero Banner" 
                 className="absolute top-0 h-full w-full object-cover flip-x"
                 initial={{ filter: "brightness(1)" }}
                 animate={{ filter: isInView ? "brightness(0.5)" : "brightness(1)" }}

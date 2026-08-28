@@ -26,25 +26,6 @@ export default function Header({ config, locationState, onOpenLocation }) {
                     </p>
                 </div>
             </div>
-
-            {/* Location Check Trigger Button */}
-            {onOpenLocation && (
-                <button
-                    type="button"
-                    onClick={onOpenLocation}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-400 text-[10px] font-bold transition-all cursor-pointer flex-shrink-0 active:scale-95"
-                    title="Check delivery to your area"
-                >
-                    <FiMapPin size={11} className="text-amber-400" />
-                    <span>
-                        {locationState?.checked
-                            ? locationState.isServiceable
-                                ? `~${locationState.distanceKm} km`
-                                : "Unavailable"
-                            : "Check Area"}
-                    </span>
-                </button>
-            )}
         </div>
     );
 }

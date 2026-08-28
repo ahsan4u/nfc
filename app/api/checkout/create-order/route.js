@@ -4,45 +4,54 @@ import { sendOrderEmails } from '@/lib/email';
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { items, customer, payment_method = 'razorpay' } = body;
+    const { items, customer, delivery_charge = 0, payment_method = 'razorpay' } = body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ success: false, message: 'Cart is empty' }, { status: 400 });
     }
 
-    if (!customer?.name || !customer?.phone || !customer?.email || !customer?.address) {
-      return NextResponse.json({ success: false, message: 'Customer details (name, phone, email, address) are required' }, { status: 400 });
+    if (!customer?.name || !customer?.phone || !customer?.email) {
+      return NextResponse.json({ success: false, message: 'Customer details (name, phone, email) are required' }, { status: 400 });
     }
 
-    // Calculate total amount in Rupees
-    const totalAmount = items.reduce((sum, item) => {
+    // Calculate items total amount in Rupees
+    const itemsTotal = items.reduce((sum, item) => {
       const price = parseFloat(item.price) || 0;
       const qty = parseInt(item.quantity) || 1;
       return sum + (price * qty);
     }, 0);
 
-    if (totalAmount <= 0) {
+    const deliveryFee = Math.max(0, parseFloat(delivery_charge) || 0);
+    const finalTotal = itemsTotal + deliveryFee;
+
+    if (finalTotal <= 0) {
       return NextResponse.json({ success: false, message: 'Invalid order total' }, { status: 400 });
     }
 
     // If Cash on Delivery (COD)
     if (payment_method === 'cod') {
-      const codOrderId = `NFC-COD-${Date.now().toString().slice(-6)}`;
+      const codOrderId = `TNS-COD-${Date.now().toString().slice(-6)}`;
 
       // Send emails to customer and admin
-      sendOrderEmails({
-        order_id: codOrderId,
-        amount: totalAmount,
-        customer,
-        items,
-        payment_method: 'cod',
-      }).catch(err => console.error("Async email dispatch error:", err));
+      try {
+        await sendOrderEmails({
+          order_id: codOrderId,
+          amount: finalTotal,
+          delivery_charge: deliveryFee,
+          customer,
+          items,
+          payment_method: 'cod',
+        });
+      } catch (err) {
+        console.error("Async email dispatch error:", err);
+      }
 
       return NextResponse.json({
         success: true,
         order_id: codOrderId,
         payment_method: 'cod',
-        amount: totalAmount,
+        amount: finalTotal,
+        delivery_charge: deliveryFee,
         currency: 'INR',
         customer,
         items,
@@ -59,8 +68,8 @@ export async function POST(request) {
     }
 
     // Razorpay amount in Paise (multiply by 100)
-    const amountInPaise = Math.round(totalAmount * 100);
-    const receiptId = `nfc_rcpt_${Date.now().toString().slice(-8)}`;
+    const amountInPaise = Math.round(finalTotal * 100);
+    const receiptId = `tns_rcpt_${Date.now().toString().slice(-8)}`;
 
     const authHeader = `Basic ${Buffer.from(`${publicKey}:${privateKey}`).toString('base64')}`;
 
@@ -78,9 +87,10 @@ export async function POST(request) {
           customer_name: customer.name,
           customer_phone: customer.phone,
           customer_email: customer.email,
-          customer_address: customer.address,
-          customer_distance_km: customer.distance_km ? `${customer.distance_km} km` : 'N/A',
-          customer_gps: customer.user_lat && customer.user_lng ? `${customer.user_lat},${customer.user_lng}` : 'N/A',
+          customer_location: customer.selected_location || 'N/A',
+          customer_landmark: customer.landmark || 'N/A',
+          customer_address: customer.address || 'N/A',
+          delivery_charge: deliveryFee > 0 ? `₹${deliveryFee}` : 'FREE',
         },
       }),
     });

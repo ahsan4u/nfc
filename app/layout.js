@@ -1,7 +1,7 @@
 import { Convergence, Dancing_Script, Kalam, Permanent_Marker } from "next/font/google";
 import Script from "next/script";
 import sql from "@/lib/db";
-import { getConfigs, DEFAULT_CONFIG } from "@/lib/data";
+import { getConfigs } from "@/lib/data";
 import { getBlobUrl } from "@/lib/functions";
 import "./globals.css";
 
@@ -35,43 +35,43 @@ const permanentMarker = Permanent_Marker({
 export async function generateMetadata() {
   try {
     const configRows = await getConfigs(sql);
-    const config = { ...DEFAULT_CONFIG };
+    const config = {};
     for (const r of configRows) {
       if (r.key && r.value !== undefined && r.value !== null) {
         config[r.key] = r.value;
       }
     }
 
-    const title = config.meta_title || config.site_title || "THE NAWAB SAHAB";
-    const description = config.meta_description || "Cafe • Bakery • Sweets | Legacy 1974 - Estd 2026";
-    const faviconUrl = getBlobUrl(config.favicon_image || "/icons/og-logo2.png");
-    const ogImageUrl = getBlobUrl(config.og_image || "/hero-banner.jpg");
+    const title = config.meta_title || config.site_title || "";
+    const description = config.meta_description || "";
+    const faviconUrl = config.favicon_image ? getBlobUrl(config.favicon_image) : undefined;
+    const ogImageUrl = config.og_image ? getBlobUrl(config.og_image) : undefined;
 
     return {
       title,
       description,
       keywords: config.meta_keywords ? config.meta_keywords.split(",").map(k => k.trim()) : undefined,
-      icons: {
+      icons: faviconUrl ? {
         icon: [
           { url: faviconUrl },
           { url: faviconUrl, type: "image/png" }
         ],
         shortcut: faviconUrl,
         apple: faviconUrl,
-      },
+      } : undefined,
       openGraph: {
         title,
         description,
-        url: config.canonical_url || "https://thenawabsahab.com",
-        siteName: config.site_title || "THE NAWAB SAHAB",
-        images: [
+        url: config.canonical_url || undefined,
+        siteName: config.site_title || undefined,
+        images: ogImageUrl ? [
           {
             url: ogImageUrl,
             width: 1200,
             height: 630,
             alt: title,
           },
-        ],
+        ] : undefined,
         type: "website",
       },
       verification: config.google_site_verification ? {
@@ -82,13 +82,7 @@ export async function generateMetadata() {
       } : undefined,
     };
   } catch {
-    return {
-      title: "THE NAWAB SAHAB",
-      description: "Cafe • Bakery • Sweets | Legacy 1974 - Estd 2026",
-      icons: {
-        icon: getBlobUrl("/icons/og-logo2.png"),
-      },
-    };
+    return {};
   }
 }
 
